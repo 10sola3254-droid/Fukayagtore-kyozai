@@ -433,6 +433,7 @@
   }
 
   function stopPdf() {
+    document.body.classList.remove("has-quiz");
     if (currentPdfTask) { currentPdfTask.cancelled = true; currentPdfTask.cleanup(); currentPdfTask = null; }
   }
 
@@ -472,7 +473,7 @@
       if (!doc || task.cancelled) { if (doc) doc.destroy(); return; }
       task.doc = doc;
       msg.remove();
-      return setupPages(task, doc, stack, info, label);
+      return setupPages(task, doc, stack, info, label).then(function () { return initQuiz(task, m); });
     }).catch(function (e) {
       fail(esc(e && e.message ? e.message : "PDFが読みこめませんでした。"));
     });
@@ -527,6 +528,239 @@
       window.addEventListener("resize", task.onResize);
       if (!task.pages.length) info.textContent = label;
     });
+  }
+
+
+  /* ---------------- ○×チェック（確認問題 → 解説 → チェックテスト） ----------------
+     PDFと同じ名前の .json（位置データ）があるときだけ動きます。
+     ・確認問題の下の表をタップして ○ × をつける
+     ・×の単元の解説に色がつく → 読み終えたらチェックテストへ → ×の番号の問題に色がつく
+     ・記録はこのスマホの中だけに残ります（ログイン・サーバーなし）            */
+  var CIRC = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫";
+
+  function loadQuizState(key) {
+    try {
+      var v = JSON.parse(localStorage.getItem(key) || "null");
+      if (v && v.marks) return v;
+    } catch (e) {}
+    return { marks: {}, phase: "mark" };
+  }
+  function saveQuizState(q) {
+    try { localStorage.setItem(q.key, JSON.stringify(q.st)); } catch (e) {}
+  }
+
+  function initQuiz(task, m) {
+    var url = m.src.replace(/\.pdf$/i, ".json");
+    if (url === m.src) return;
+    return fetch(url, { cache: "no-cache" }).then(function (res) {
+      return res.ok ? res.json() : null;
+    }).then(function (cfg) {
+      if (!cfg || task.cancelled || !cfg.questions || !cfg.questions.length) return;
+      task.quiz = { cfg: cfg, key: "gtore-quiz:" + m.src, st: null, resetArmed: false };
+      task.quiz.st = loadQuizState(task.quiz.key);
+      document.body.classList.add("has-quiz");
+      buildQuizBar(task);
+      refreshQuiz(task);
+    }).catch(function () {});
+  }
+
+  function quizWrong(q) {
+    return q.cfg.questions.filter(function (x) { return q.st.marks[x.n] === "x"; });
+  }
+
+  function placeRect(el, r) {
+    el.style.left = (r.x * 100) + "%";
+    el.style.top = (r.y * 100) + "%";
+    el.style.width = (r.w * 100) + "%";
+    el.style.height = (r.h * 100) + "%";
+  }
+
+  function mkEl(cls, text) {
+    var d = document.createElement("div");
+    d.className = cls;
+    if (text) d.textContent = text;
+    return d;
+  }
+
+  function renderQuizLayers(task) {
+    var q = task.quiz, cfg = q.cfg, st = q.st;
+    var wrong = quizWrong(q);
+    var wrongUnits = {};
+    wrong.forEach(function (x) { (wrongUnits[x.unit] = wrongUnits[x.unit] || []).push(x); });
+
+    task.pages.forEach(function (p) {
+      var old = p.box.querySelector(".quiz-layer");
+      if (old) old.remove();
+      var layer = mkEl("quiz-layer");
+      var any = false;
+
+      // 確認問題の表：○×のマス
+      if (p.num === cfg.pages.quiz) {
+        (cfg.cells || []).forEach(function (c) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "q-cell";
+          b.setAttribute("aria-label", "確認問題" + CIRC[c.n - 1] + " " + ({ o: "○", x: "×" }[st.marks[c.n]] || "まだ"));
+          placeRect(b, c);
+          var mark = st.marks[c.n];
+          if (mark) {
+            var g = mkEl("q-glyph " + mark, mark === "o" ? "○" : "×");
+            b.appendChild(g);
+          }
+          b.addEventListener("click", function () { cycleMark(task, c.n); });
+          layer.appendChild(b);
+          any = true;
+        });
+      }
+
+      // 解説：×だった問題の単元に色をつける
+      if (st.phase === "explain" || st.phase === "test") {
+        (cfg.explain || []).forEach(function (e) {
+          if (e.page !== p.num || !wrongUnits[e.unit]) return;
+          var nums = wrongUnits[e.unit].map(function (x) { return CIRC[x.n - 1]; }).join("");
+          var area = mkEl("hl hl-area hl-explain");
+          placeRect(area, e.area);
+          var head = mkEl("hl hl-head hl-explain");
+          placeRect(head, e.heading);
+          head.appendChild(mkEl("hl-badge", "確認問題" + nums + "が × → ここを読もう"));
+          layer.appendChild(area); layer.appendChild(head);
+          any = true;
+        });
+      }
+
+      // チェックテスト：×だった番号の問題に色をつける
+      if (st.phase === "test") {
+        (cfg.test || []).forEach(function (t) {
+          if (t.page !== p.num || st.marks[t.n] !== "x") return;
+          var box = mkEl("hl hl-area hl-test");
+          placeRect(box, t.rect);
+          box.appendChild(mkEl("hl-badge", "確認問題" + CIRC[t.n - 1] + "が ×"));
+          layer.appendChild(box);
+          any = true;
+        });
+      }
+
+      if (any) p.box.appendChild(layer);
+    });
+  }
+
+  function cycleMark(task, n) {
+    var q = task.quiz, cur = q.st.marks[n];
+    var next = !cur ? "o" : cur === "o" ? "x" : null;
+    if (next) q.st.marks[n] = next; else delete q.st.marks[n];
+    // ○×を変えたら、まず解説の段階からやり直し（色がずれないように）
+    if (q.st.phase === "test") q.st.phase = "explain";
+    if (!quizWrong(q).length) q.st.phase = "mark";
+    q.resetArmed = false;
+    saveQuizState(q);
+    refreshQuiz(task);
+  }
+
+  function buildQuizBar(task) {
+    var bar = document.createElement("div");
+    bar.className = "quiz-bar";
+    bar.id = "quizBar";
+    bar.innerHTML = '<div class="qb-chips" id="qbChips"></div>' +
+      '<div class="qb-row"><span class="qb-hint" id="qbHint"></span>' +
+      '<button type="button" class="qb-reset" id="qbReset">やり直す</button></div>' +
+      '<button type="button" class="qb-main" id="qbMain"></button>';
+    view.appendChild(bar);
+    document.getElementById("qbMain").addEventListener("click", function () {
+      var act = task.quiz.action;
+      if (act) act();
+    });
+    document.getElementById("qbReset").addEventListener("click", function () {
+      var q = task.quiz;
+      if (!q.resetArmed) {
+        q.resetArmed = true;
+        this.textContent = "ほんとうに消す？";
+        setTimeout(function () {
+          if (q.resetArmed) { q.resetArmed = false; var b = document.getElementById("qbReset"); if (b) b.textContent = "やり直す"; }
+        }, 3000);
+        return;
+      }
+      q.st = { marks: {}, phase: "mark" };
+      q.resetArmed = false;
+      saveQuizState(q);
+      refreshQuiz(task);
+      this.textContent = "やり直す";
+    });
+  }
+
+  function refreshQuiz(task) {
+    var q = task.quiz;
+    renderQuizLayers(task);
+    var chips = document.getElementById("qbChips");
+    if (!chips) return;
+    chips.innerHTML = "";
+    q.cfg.questions.forEach(function (x) {
+      var b = document.createElement("button");
+      b.type = "button";
+      var mk = q.st.marks[x.n];
+      b.className = "qc" + (mk ? " " + mk : "");
+      b.innerHTML = '<span class="qc-n">' + (CIRC[x.n - 1] || x.n) + '</span><span class="qc-m">' + (mk === "o" ? "○" : mk === "x" ? "×" : "−") + "</span>";
+      b.addEventListener("click", function () { cycleMark(task, x.n); });
+      chips.appendChild(b);
+    });
+
+    var wrong = quizWrong(q);
+    var marked = Object.keys(q.st.marks).length, total = q.cfg.questions.length;
+    var hint = document.getElementById("qbHint"), main = document.getElementById("qbMain");
+    var phase = q.st.phase;
+    q.action = null;
+    main.hidden = false;
+    if (phase === "mark") {
+      if (wrong.length) {
+        hint.textContent = "× が " + wrong.length + "問";
+        main.textContent = "×の解説を読む ›";
+        q.action = function () { goExplain(task); };
+      } else if (marked === total) {
+        hint.textContent = "ぜんぶ ○！ すごい";
+        main.textContent = "チェックテストへ ›";
+        q.action = function () { goTest(task); };
+      } else {
+        hint.textContent = "表をタップして ○ × をつけよう（" + marked + "／" + total + "）";
+        main.hidden = true;
+      }
+    } else if (phase === "explain") {
+      hint.textContent = "色のついた解説を読もう";
+      main.textContent = "読み終えた → チェックテストへ ›";
+      q.action = function () { goTest(task); };
+    } else {
+      hint.textContent = "色のついた問題を解こう";
+      main.textContent = "‹ 解説にもどる";
+      q.action = function () { goExplain(task); };
+    }
+  }
+
+  function quizScrollTo(sel, fallbackPageNum, task) {
+    requestAnimationFrame(function () {
+      var el = document.querySelector(sel);
+      if (!el) {
+        var pg = task.pages.filter(function (p) { return p.num === fallbackPageNum; })[0];
+        el = pg && pg.box;
+      }
+      if (!el) return;
+      var tools = document.querySelector(".viewer-tools");
+      var off = (navBar.offsetHeight || 0) + (tools ? tools.offsetHeight : 0) + 10;
+      window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - off), behavior: "smooth" });
+    });
+  }
+
+  function goExplain(task) {
+    var q = task.quiz;
+    q.st.phase = "explain";
+    saveQuizState(q);
+    refreshQuiz(task);
+    var first = (q.cfg.pages.explain || [])[0] || 1;
+    quizScrollTo(".hl-explain", first, task);
+  }
+  function goTest(task) {
+    var q = task.quiz;
+    q.st.phase = quizWrong(q).length ? "test" : "mark";
+    saveQuizState(q);
+    refreshQuiz(task);
+    quizScrollTo(".hl-test", q.cfg.pages.test, task);
   }
 
   function applyZoom(task, stack) {

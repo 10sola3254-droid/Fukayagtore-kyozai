@@ -409,3 +409,67 @@ body[data-screen="viewer"] .view {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation-duration: 0s !important; }
 }
+
+/* =========================================================
+   ○×チェック（確認問題 → 解説 → チェックテスト）
+   ========================================================= */
+.pdf-page { container-type: inline-size; scroll-margin-top: 130px; }
+.quiz-layer { position: absolute; inset: 0; pointer-events: none; }
+
+/* 確認問題の表：○×のマス */
+.q-cell {
+  position: absolute;
+  pointer-events: auto;
+  border: 0; padding: 0; margin: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.q-cell::after { content: ""; position: absolute; inset: -5px -2px; }   /* 指でおしやすいように少し広げる */
+.q-cell:active { background: rgba(37, 99, 235, .12); }
+.q-glyph { position: relative; z-index: 1; font-weight: 800; font-size: 3.6cqw; line-height: 1; }
+.q-glyph.o { color: #2563eb; }
+.q-glyph.x { color: #dc2626; }
+
+/* 色づけ */
+.hl { position: absolute; border-radius: 6px; }
+.hl-area.hl-explain { background: rgba(249, 115, 22, .13); box-shadow: inset 0 0 0 3px #f97316; mix-blend-mode: multiply; }
+.hl-head.hl-explain { background: rgba(249, 115, 22, .32); mix-blend-mode: multiply; display: flex; align-items: center; justify-content: flex-end; padding-right: 1.2cqw; }
+.hl-area.hl-test { background: rgba(220, 38, 38, .11); box-shadow: inset 0 0 0 3px #dc2626; mix-blend-mode: multiply; }
+.hl-badge {
+  font-size: 2.5cqw; font-weight: 800; line-height: 1.2;
+  padding: .5cqw 1.6cqw; border-radius: 999px;
+  background: #fff; color: #c2410c; box-shadow: 0 0 0 1.5px #f97316;
+  mix-blend-mode: normal;
+}
+.hl-test .hl-badge { position: absolute; right: 1.2cqw; bottom: 1.2cqw; white-space: nowrap; color: #b91c1c; box-shadow: 0 0 0 1.5px #dc2626; }
+
+/* 下のボタンバー */
+.quiz-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  background: #fff; border-top: 1px solid var(--line);
+  box-shadow: 0 -4px 14px rgba(20, 30, 60, .12);
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+}
+.qb-chips { display: flex; gap: 5px; justify-content: center; margin-bottom: 6px; }
+.qc {
+  flex: 1 1 0; max-width: 48px; min-height: 44px; padding: 1px 0; border: 0; border-radius: 10px;
+  background: #eceef3; color: #5b6475; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1;
+}
+.qc-n { font-size: 12px; font-weight: 700; }
+.qc-m { font-size: 18px; font-weight: 800; }
+.qc.o { background: #dbe7ff; color: #1d4ed8; }
+.qc.x { background: #fde1e1; color: #b91c1c; }
+.qb-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.qb-hint { flex: 1; min-width: 0; font-size: 14px; font-weight: 800; color: var(--ink); line-height: 1.3; }
+.qb-main {
+  display: block; width: 100%; min-height: 48px; padding: 0 16px; border: 0; border-radius: 999px;
+  background: var(--c); color: #fff; font-size: 17px; font-weight: 800; cursor: pointer;
+}
+.qb-main[hidden] { display: none; }
+.qb-reset {
+  flex: none; padding: 6px 4px; border: 0; background: none;
+  color: var(--ink-soft); font-size: 13px; font-weight: 700; text-decoration: underline; cursor: pointer;
+}
+body.has-quiz .pdf-pages { padding-bottom: calc(170px + env(safe-area-inset-bottom)); }
