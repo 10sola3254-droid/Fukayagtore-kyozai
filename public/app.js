@@ -490,7 +490,6 @@
           var box = document.createElement("div");
           box.className = "pdf-page";
           box.style.aspectRatio = vp.width + " / " + vp.height;
-          box.innerHTML = '<span class="pg-no">' + num + " / " + n + "</span>";
           stack.appendChild(box);
           task.pages.push({ num: num, page: page, box: box, canvas: null, renderedWidth: 0, rendering: null });
         });
