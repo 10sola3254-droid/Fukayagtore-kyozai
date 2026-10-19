@@ -1,0 +1,8 @@
+このフォルダに教材のPDFを入れます。
+
+例）ファイル名が ichiji-shiki.pdf のとき
+materials.json の "URL" には次のどちらかを書きます（どちらでも開けます）。
+  "URL": "materials/ichiji-shiki.pdf"
+  "URL": "ichiji-shiki.pdf"
+
+※ファイル名は半角英数字（a～z、0～9、-、_）にすると安全です。

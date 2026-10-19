@@ -1,0 +1,634 @@
+/* =========================================================
+   学習空間 深谷上柴教室 Gトレ教材
+   ・教材の一覧は materials.json だけで管理します
+   ・AI機能 / ログイン / データベースは使っていません
+   ========================================================= */
+(function () {
+  "use strict";
+
+  // 教科（表示の順番・アイコン文字）
+  var SUBJECTS = [
+    { name: "数学", icon: "数" },
+    { name: "英語", icon: "英" },
+    { name: "国語", icon: "国" },
+    { name: "理科", icon: "理" },
+    { name: "社会", icon: "社" }
+  ];
+
+  var view = document.getElementById("view");
+  var crumbs = document.getElementById("crumbs");
+  var backBtn = document.getElementById("backBtn");
+  var navBar = document.getElementById("navBar");
+
+  var DATA = null;      // { 教科名: [単元, ...] }
+  var LOAD_ERROR = "";
+  var currentPdfTask = null;
+
+  /* ---------------- 文字のととのえ ---------------- */
+  function norm(s) {
+    return String(s == null ? "" : s).normalize("NFKC").replace(/\s+/g, " ").trim();
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  /* ---------------- 並び順 ---------------- */
+  // 「中1」「中2」「中3」（小・高にも対応）→ 数字にする
+  function gradeRank(name) {
+    var m = norm(name).match(/^(小|中|高)\s*([0-9])/);
+    if (!m) return 999;
+    return { "小": 0, "中": 10, "高": 20 }[m[1]] + Number(m[2]);
+  }
+  function gradeLabel(name) {
+    var m = norm(name).match(/^((?:小|中|高)\s*[0-9])/);
+    return m ? m[1].replace(/\s/g, "") : "";
+  }
+  // 「3章-13・14」→ [3, 13]
+  function chapterKey(name) {
+    var m = norm(name).match(/^([0-9]+)\s*章\s*(?:[-‐－ー―]\s*([0-9]+))?/);
+    if (!m) return null;
+    return [Number(m[1]), m[2] ? Number(m[2]) : 0];
+  }
+  var collator = new Intl.Collator("ja", { numeric: true });
+
+  function compareTopics(a, b) {
+    var ka = chapterKey(a.title), kb = chapterKey(b.title);
+    if (ka && !kb) return -1;          // 「○章-○○」があるものを先に
+    if (!ka && kb) return 1;
+    if (ka && kb) {
+      if (ka[0] !== kb[0]) return ka[0] - kb[0];
+      if (ka[1] !== kb[1]) return ka[1] - kb[1];
+      var c = collator.compare(norm(a.title), norm(b.title));
+      if (c) return c;
+    }
+    return a.order - b.order;          // それ以外は materials.json に書いた順
+  }
+
+  function unitChapter(unit) {
+    var own = chapterKey(unit.name.replace(/^(?:小|中|高)\s*[0-9]\s*/, ""));
+    if (own) return own[0];
+    var min = Infinity;
+    unit.topics.forEach(function (t) {
+      var k = chapterKey(t.title);
+      if (k && k[0] < min) min = k[0];
+    });
+    return min;
+  }
+  function compareUnits(a, b) {
+    var g = gradeRank(a.name) - gradeRank(b.name);
+    if (g) return g;
+    var ca = unitChapter(a), cb = unitChapter(b);
+    if (ca !== cb) return ca === Infinity ? 1 : cb === Infinity ? -1 : ca - cb;
+    return a.order - b.order;
+  }
+
+  // 細かい単元名を「3章-13・14」と「一次関数の式の求め方」に分ける
+  function splitTopic(title) {
+    var m = String(title).match(/^\s*([0-9０-９]+\s*章\s*[-‐－ー―]\s*\S+)[\s　]+(.+)$/);
+    if (m) return { code: m[1], text: m[2] };
+    return { code: "", text: title };
+  }
+
+  /* ---------------- materials.json を読む ---------------- */
+  function pick(obj, keys) {
+    for (var i = 0; i < keys.length; i++) {
+      if (obj[keys[i]] != null) return String(obj[keys[i]]);
+    }
+    return "";
+  }
+
+  function buildData(list) {
+    if (list && !Array.isArray(list)) list = list["教材"] || list.materials || [];
+    var bySubject = {};
+    SUBJECTS.forEach(function (s) { bySubject[s.name] = []; });
+
+    list.forEach(function (row, i) {
+      if (!row || typeof row !== "object") return;
+      var subject = norm(pick(row, ["教科", "subject"]));
+      var unitName = String(pick(row, ["単元", "unit"])).trim();
+      var title = String(pick(row, ["細かい単元", "topic", "title"])).trim();
+      var url = String(pick(row, ["URL", "url"])).trim();
+      if (!subject || !unitName || !title) return;
+      if (!bySubject[subject]) {
+        console.warn("materials.json: 知らない教科名です →", subject, "（数学・英語・国語・理科・社会のどれかにしてください）");
+        return;
+      }
+      var units = bySubject[subject];
+      var unit = null;
+      for (var j = 0; j < units.length; j++) {
+        if (norm(units[j].name) === norm(unitName)) { unit = units[j]; break; }
+      }
+      if (!unit) { unit = { name: unitName, topics: [], order: i }; units.push(unit); }
+      unit.topics.push({ title: title, url: url, order: i });
+    });
+
+    Object.keys(bySubject).forEach(function (s) {
+      bySubject[s].forEach(function (u) { u.topics.sort(compareTopics); });
+      bySubject[s].sort(compareUnits);
+    });
+    return bySubject;
+  }
+
+  function loadData() {
+    return fetch("materials.json", { cache: "no-cache" })
+      .then(function (res) {
+        if (!res.ok) throw new Error("materials.json が読みこめませんでした（" + res.status + "）");
+        return res.text();
+      })
+      .then(function (text) {
+        var json;
+        try {
+          json = JSON.parse(text.replace(/^﻿/, ""));
+        } catch (e) {
+          var pos = (String(e.message).match(/position\s+(\d+)/) || [])[1];
+          var line = pos ? text.slice(0, Number(pos)).split("\n").length : null;
+          throw new Error("materials.json の書き方にまちがいがあります" +
+            (line ? "（" + line + "行目あたり）" : "") +
+            "。\n「,」のつけ忘れ・つけすぎや、「\"」の閉じ忘れがないか確認してください。");
+        }
+        DATA = buildData(json);
+      })
+      .catch(function (e) {
+        LOAD_ERROR = e.message || String(e);
+        DATA = buildData([]);
+      });
+  }
+
+  /* ---------------- URL（PDFの場所）を調べる ---------------- */
+  function resolveMaterial(raw) {
+    var url = String(raw || "").trim();
+    if (!url) return null;
+
+    // (b) Googleドライブの共有リンク → スマホで見やすいプレビュー表示
+    if (/^https?:\/\/(drive|docs)\.google\.com\//i.test(url)) {
+      var id = (url.match(/\/d\/([a-zA-Z0-9_-]{10,})/) || url.match(/[?&]id=([a-zA-Z0-9_-]{10,})/) || [])[1];
+      if (id) {
+        var isDocs = /docs\.google\.com\/(document|spreadsheets|presentation)\//i.exec(url);
+        var base = isDocs
+          ? "https://docs.google.com/" + isDocs[1] + "/d/" + id
+          : "https://drive.google.com/file/d/" + id;
+        return { type: "drive", embed: base + "/preview", open: base + "/view" };
+      }
+      return { type: "link", open: url };
+    }
+
+    // その他のWebサイトのURL
+    if (/^https?:\/\//i.test(url)) return { type: "link", open: url };
+
+    // (a) public/materials フォルダのPDF
+    var path = url.replace(/^\.?\//, "").replace(/^public\//, "");
+    if (path.indexOf("/") === -1) path = "materials/" + path;   // ファイル名だけでもOK
+    return { type: "pdf", src: encodeURI(decodeURI(path)), open: encodeURI(decodeURI(path)) };
+  }
+
+  /* ---------------- 画面の場所（ルート） ---------------- */
+  function findSubject(name) {
+    var n = norm(name);
+    for (var i = 0; i < SUBJECTS.length; i++) if (SUBJECTS[i].name === n) return SUBJECTS[i].name;
+    return null;
+  }
+  function findByName(items, name, getName) {
+    var n = norm(name);
+    if (!n) return null;
+    var exact = items.filter(function (it) { return norm(getName(it)) === n; });
+    if (exact.length) return exact[0];
+    // 一部だけでも、1つにしぼれれば開く（QRコードの打ちまちがい対策）
+    var part = items.filter(function (it) { return norm(getName(it)).indexOf(n) !== -1; });
+    return part.length === 1 ? part[0] : null;
+  }
+
+  function routeFromURL() {
+    var q = new URLSearchParams(location.search);
+    var r = { subject: null, unit: null, topic: null, missing: "" };
+    var s = q.get("subject");
+    if (!s) return r;
+    r.subject = findSubject(s);
+    if (!r.subject) { r.missing = "教科「" + s + "」"; return r; }
+    var u = q.get("unit");
+    if (!u) return r;
+    var unit = findByName(DATA[r.subject], u, function (x) { return x.name; });
+    if (!unit) { r.missing = "単元「" + u + "」"; return r; }
+    r.unit = unit;
+    var t = q.get("topic");
+    if (!t) return r;
+    var byCode = unit.topics.filter(function (x) { return norm(splitTopic(x.title).code) === norm(t); });
+    var topic = byCode.length === 1 ? byCode[0] : findByName(unit.topics, t, function (x) { return x.title; });
+    if (!topic) { r.missing = "細かい単元「" + t + "」"; return r; }
+    r.topic = topic;
+    return r;
+  }
+
+  function urlFor(subject, unit, topic) {
+    var q = new URLSearchParams();
+    if (subject) q.set("subject", subject);
+    if (unit) q.set("unit", unit.name);
+    if (topic) q.set("topic", topic.title);
+    var s = q.toString();
+    return location.pathname + (s ? "?" + s : "");
+  }
+
+  // 次の画面へ（スマホの「戻る」操作でも1つ前にもどれる）
+  function go(subject, unit, topic) {
+    var cur = routeFromURL();
+    var d = depthOf(subject, unit, topic);
+    var fromParent = d === depthOf(cur.subject, cur.unit, cur.topic) + 1;   // 1つ下の画面へ進んだとき
+    history.pushState({ app: true, depth: d, fromParent: fromParent }, "", urlFor(subject, unit, topic));
+    render(true);
+  }
+  function depthOf(s, u, t) { return t ? 3 : u ? 2 : s ? 1 : 0; }
+
+  // 「もどる」ボタン：1つ上の画面へ
+  function goUp() {
+    var r = routeFromURL();
+    var parent;
+    if (r.topic) parent = [r.subject, r.unit, null];
+    else if (r.unit) parent = [r.subject, null, null];
+    else parent = [null, null, null];
+    var st = history.state;
+    if (st && st.app && st.depth === depthOf(r.subject, r.unit, r.topic) && st.depth > 0 && st.fromParent) {
+      history.back();
+    } else {
+      history.replaceState({ app: true, depth: depthOf(parent[0], parent[1], parent[2]) }, "", urlFor(parent[0], parent[1], parent[2]));
+      render(true);
+    }
+  }
+
+  /* ---------------- 画面をつくる ---------------- */
+  function setCrumbs(r) {
+    var items = [];
+    var hasMore = !!r.subject;
+    items.push(hasMore ? '<li><a href="' + esc(urlFor()) + '" data-go="home">ホーム</a></li>' : '<li aria-current="page">ホーム</li>');
+    if (r.subject) {
+      items.push(r.unit
+        ? '<li><a href="' + esc(urlFor(r.subject)) + '" data-go="subject">' + esc(r.subject) + "</a></li>"
+        : '<li aria-current="page">' + esc(r.subject) + "</li>");
+    }
+    if (r.unit) {
+      items.push(r.topic
+        ? '<li><a href="' + esc(urlFor(r.subject, r.unit)) + '" data-go="unit">' + esc(r.unit.name) + "</a></li>"
+        : '<li aria-current="page">' + esc(r.unit.name) + "</li>");
+    }
+    if (r.topic) {
+      var sp = splitTopic(r.topic.title);
+      items.push('<li aria-current="page">' + esc(sp.code || sp.text) + "</li>");
+    }
+    crumbs.innerHTML = items.join("");
+    crumbs.querySelectorAll("a[data-go]").forEach(function (a) {
+      a.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        var g = a.getAttribute("data-go");
+        if (g === "home") go(null);
+        else if (g === "subject") go(r.subject);
+        else go(r.subject, r.unit);
+      });
+    });
+  }
+
+  function render(fromNav) {
+    stopPdf();
+    var r = routeFromURL();
+    document.body.setAttribute("data-subject", r.subject || "");
+    var screen = r.topic ? "viewer" : r.unit ? "topics" : r.subject ? "units" : "home";
+    document.body.setAttribute("data-screen", screen);
+    setCrumbs(r);
+
+    var notice = "";
+    if (r.missing) notice = '<p class="notice">' + esc(r.missing) + " が見つかりませんでした。下から選んでください。</p>";
+    if (LOAD_ERROR) notice = '<p class="notice error">' + esc(LOAD_ERROR) + "</p>" + notice;
+
+    if (screen === "home") renderHome(notice);
+    else if (screen === "units") renderUnits(r, notice);
+    else if (screen === "topics") renderTopics(r, notice);
+    else renderViewer(r);
+
+    var titles = { home: "", units: r.subject, topics: r.unit && r.unit.name, viewer: r.topic && r.topic.title };
+    document.title = (titles[screen] ? titles[screen] + "｜" : "") + "学習空間 深谷上柴教室　Gトレ教材";
+    if (fromNav) { window.scrollTo(0, 0); view.focus({ preventScroll: true }); }
+    updateBarHeight();
+  }
+
+  function renderHome(notice) {
+    var html = notice + '<h1 class="screen-title">教科をえらぼう</h1><ul class="list">';
+    SUBJECTS.forEach(function (s) {
+      var units = DATA[s.name];
+      var empty = units.length === 0;
+      html += '<li><button type="button" class="subject-btn' + (empty ? " is-empty" : "") + '" data-s="' + s.name + '"' +
+        (empty ? ' aria-disabled="true"' : "") + ">" +
+        '<span class="subject-icon" aria-hidden="true">' + s.icon + "</span>" +
+        '<span class="subject-name">' + s.name + "</span>" +
+        '<span class="subject-meta">' +
+        (empty ? '<span class="chip">準備中</span>' : units.length + '単元<span class="chev" aria-hidden="true">›</span>') +
+        "</span></button></li>";
+    });
+    html += "</ul>" + installCardHTML();
+    view.innerHTML = html;
+    view.querySelectorAll(".subject-btn").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (b.classList.contains("is-empty")) return;
+        go(b.getAttribute("data-s"));
+      });
+    });
+    wireInstallCard();
+  }
+
+  function renderUnits(r, notice) {
+    var units = DATA[r.subject];
+    var html = notice + '<h1 class="screen-title">' + esc(r.subject) + "：単元をえらぼう</h1>";
+    if (!units.length) {
+      view.innerHTML = html + '<p class="empty">この教科の教材は準備中です。</p>';
+      return;
+    }
+    // 学年ごとにまとめる
+    var groups = [];
+    units.forEach(function (u, idx) {
+      var g = gradeLabel(u.name) || "その他";
+      var last = groups[groups.length - 1];
+      if (!last || last.label !== g) groups.push(last = { label: g, units: [] });
+      last.units.push({ u: u, idx: idx });
+    });
+    groups.forEach(function (g) {
+      html += '<section class="grade-group"><h2 class="grade-label">' + esc(g.label) + '</h2><ul class="list">';
+      g.units.forEach(function (x) {
+        var u = x.u;
+        var ready = u.topics.filter(function (t) { return !!resolveMaterial(t.url); }).length;
+        var shown = u.name.replace(/^(?:小|中|高)\s*[0-9]\s*/, "") || u.name;
+        var note = "教材 " + u.topics.length + "つ" + (ready && ready < u.topics.length ? "（準備中 " + (u.topics.length - ready) + "）" : "");
+        html += '<li><button type="button" class="item-btn" data-i="' + x.idx + '">' +
+          '<span class="item-main"><span class="item-title">' + esc(shown) + '</span><span class="item-note">' + esc(note) + "</span></span>" +
+          '<span class="item-right">' + (ready ? '<span class="chev" aria-hidden="true">›</span>' : '<span class="chip">準備中</span>') + "</span>" +
+          "</button></li>";
+      });
+      html += "</ul></section>";
+    });
+    view.innerHTML = html;
+    view.querySelectorAll(".item-btn").forEach(function (b) {
+      b.addEventListener("click", function () { go(r.subject, units[Number(b.getAttribute("data-i"))]); });
+    });
+  }
+
+  function renderTopics(r, notice) {
+    var html = notice + '<h1 class="screen-title">' + esc(r.unit.name) + '</h1><p class="screen-sub">開きたい教材をえらぼう</p><ul class="list">';
+    r.unit.topics.forEach(function (t, i) {
+      var sp = splitTopic(t.title);
+      var ok = !!resolveMaterial(t.url);
+      html += '<li><button type="button" class="item-btn topic' + (ok ? "" : " is-soon") + '" data-i="' + i + '"' + (ok ? "" : ' aria-disabled="true"') + ">" +
+        '<span class="item-main">' + (sp.code ? '<span class="topic-code">' + esc(sp.code) + "</span>" : "") +
+        '<span class="item-title">' + esc(sp.text) + "</span></span>" +
+        '<span class="item-right">' + (ok ? '<span class="open-pill">開く<span aria-hidden="true">›</span></span>' : '<span class="chip">準備中</span>') + "</span>" +
+        "</button></li>";
+    });
+    html += "</ul>";
+    view.innerHTML = html;
+    view.querySelectorAll(".item-btn").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (b.classList.contains("is-soon")) return;
+        go(r.subject, r.unit, r.unit.topics[Number(b.getAttribute("data-i"))]);
+      });
+    });
+  }
+
+  /* ---------------- PDFを表示 ---------------- */
+  function renderViewer(r) {
+    var m = resolveMaterial(r.topic.url);
+    var sp = splitTopic(r.topic.title);
+    var label = esc(sp.code ? sp.code + " " + sp.text : sp.text);
+
+    if (!m) {
+      view.innerHTML = '<div class="viewer-msg"><p>この教材は<strong>準備中</strong>です。</p><p>' + label + "</p></div>";
+      return;
+    }
+    if (m.type === "link") {
+      view.innerHTML = '<div class="viewer-msg"><p>' + label + '</p><a class="big-link" href="' + esc(m.open) +
+        '" target="_blank" rel="noopener">教材を開く</a></div>';
+      return;
+    }
+    if (m.type === "drive") {
+      view.innerHTML =
+        '<div class="viewer-tools"><span class="viewer-title">' + label + "</span>" +
+        '<a class="tool-btn text" href="' + esc(m.open) + '" target="_blank" rel="noopener">ドライブで開く</a></div>' +
+        '<div class="drive-wrap"><iframe class="drive-frame" src="' + esc(m.embed) + '" title="' + label +
+        '" allow="autoplay; fullscreen" loading="eager"></iframe></div>';
+      sizeDriveFrame();
+      return;
+    }
+    // (a) materials フォルダのPDF → アプリの中でページを表示
+    view.innerHTML =
+      '<div class="viewer-tools">' +
+      '<span class="viewer-title" id="pgInfo">' + label + "</span>" +
+      '<button type="button" class="tool-btn" id="zoomOut" aria-label="小さくする">－</button>' +
+      '<button type="button" class="tool-btn" id="zoomIn" aria-label="大きくする">＋</button>' +
+      '<a class="tool-btn text" href="' + esc(m.open) + '" target="_blank" rel="noopener">別画面</a>' +
+      "</div>" +
+      '<div class="pdf-pages" id="pdfPages"><div class="viewer-msg" id="pdfMsg"><div class="spinner"></div>読みこみ中…</div><div class="pdf-stack" id="pdfStack"></div></div>';
+    openPdf(m, label);
+  }
+
+  function sizeDriveFrame() {
+    var f = view.querySelector(".drive-frame");
+    if (!f) return;
+    var top = f.getBoundingClientRect().top + window.scrollY;
+    f.style.height = Math.max(420, window.innerHeight - top) + "px";
+  }
+
+  function stopPdf() {
+    if (currentPdfTask) { currentPdfTask.cancelled = true; currentPdfTask.cleanup(); currentPdfTask = null; }
+  }
+
+  function openPdf(m, label) {
+    var task = { cancelled: false, observers: [], doc: null, zoom: 1, pages: [], cleanup: function () {
+      task.observers.forEach(function (o) { o.disconnect(); });
+      window.removeEventListener("resize", task.onResize);
+      if (task.doc) task.doc.destroy();
+    } };
+    currentPdfTask = task;
+    var msg = document.getElementById("pdfMsg");
+    var stack = document.getElementById("pdfStack");
+    var info = document.getElementById("pgInfo");
+
+    function fail(text) {
+      if (task.cancelled) return;
+      msg.innerHTML = '<p class="notice error">' + text + '</p><a class="big-link" href="' + esc(m.open) + '" target="_blank" rel="noopener">PDFをそのまま開く</a>';
+    }
+
+    if (!window.pdfjsLib) { fail("PDFを表示する部品が読みこめませんでした。"); return; }
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "vendor/pdfjs/pdf.worker.min.js";
+
+    fetch(m.src).then(function (res) {
+      if (!res.ok) throw new Error(res.status === 404
+        ? "PDFファイルが見つかりません。\n（" + decodeURI(m.src) + "）\nファイル名と materials.json のURLが同じか確認してください。"
+        : "PDFが読みこめませんでした（" + res.status + "）");
+      return res.arrayBuffer();
+    }).then(function (buf) {
+      if (task.cancelled) return;
+      return pdfjsLib.getDocument({
+        data: buf,
+        cMapUrl: "vendor/pdfjs/cmaps/",
+        cMapPacked: true,
+        standardFontDataUrl: "vendor/pdfjs/standard_fonts/"
+      }).promise;
+    }).then(function (doc) {
+      if (!doc || task.cancelled) { if (doc) doc.destroy(); return; }
+      task.doc = doc;
+      msg.remove();
+      return setupPages(task, doc, stack, info, label);
+    }).catch(function (e) {
+      fail(esc(e && e.message ? e.message : "PDFが読みこめませんでした。"));
+    });
+  }
+
+  function setupPages(task, doc, stack, info, label) {
+    var n = doc.numPages;
+    var visible = new Set();
+    var chain = Promise.resolve();
+    for (var i = 1; i <= n; i++) {
+      (function (num) {
+        chain = chain.then(function () { return doc.getPage(num); }).then(function (page) {
+          if (task.cancelled) return;
+          var vp = page.getViewport({ scale: 1 });
+          var box = document.createElement("div");
+          box.className = "pdf-page";
+          box.style.aspectRatio = vp.width + " / " + vp.height;
+          box.innerHTML = '<span class="pg-no">' + num + " / " + n + "</span>";
+          stack.appendChild(box);
+          task.pages.push({ num: num, page: page, box: box, canvas: null, renderedWidth: 0, rendering: null });
+        });
+      })(i);
+    }
+    return chain.then(function () {
+      if (task.cancelled) return;
+      applyZoom(task, stack);
+
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          var p = task.pages.find(function (x) { return x.box === en.target; });
+          if (!p) return;
+          if (en.isIntersecting) { visible.add(p); renderPage(task, p); } else visible.delete(p);
+        });
+        // ページ番号表示
+        var nums = Array.from(visible).map(function (p) { return p.num; }).sort(function (a, b) { return a - b; });
+        if (nums.length) info.textContent = nums[0] + " / " + n + " ページ";
+      }, { rootMargin: "600px 0px" });
+      task.pages.forEach(function (p) { io.observe(p.box); });
+      task.observers.push(io);
+
+      var zoomTimer;
+      function rerender() {
+        clearTimeout(zoomTimer);
+        zoomTimer = setTimeout(function () { visible.forEach(function (p) { renderPage(task, p); }); }, 150);
+      }
+      document.getElementById("zoomIn").addEventListener("click", function () {
+        task.zoom = Math.min(3, Math.round((task.zoom + 0.25) * 100) / 100); applyZoom(task, stack); rerender();
+      });
+      document.getElementById("zoomOut").addEventListener("click", function () {
+        task.zoom = Math.max(1, Math.round((task.zoom - 0.25) * 100) / 100); applyZoom(task, stack); rerender();
+      });
+      task.onResize = function () { applyZoom(task, stack); rerender(); };
+      window.addEventListener("resize", task.onResize);
+      if (!task.pages.length) info.textContent = label;
+    });
+  }
+
+  function applyZoom(task, stack) {
+    var wrap = stack.parentElement;
+    var avail = wrap.clientWidth - 16;
+    var w = Math.min(avail, 900) * task.zoom;
+    stack.style.width = Math.round(w) + "px";
+  }
+
+  function renderPage(task, p) {
+    var cssW = p.box.clientWidth;
+    if (!cssW) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    var targetW = Math.min(Math.round(cssW * dpr), 3000);   // メモリを使いすぎないよう上限
+    if (Math.abs(targetW - p.renderedWidth) < 4 || p.rendering) return;
+    var base = p.page.getViewport({ scale: 1 });
+    var vp = p.page.getViewport({ scale: targetW / base.width });
+    var canvas = document.createElement("canvas");
+    canvas.width = Math.round(vp.width);
+    canvas.height = Math.round(vp.height);
+    var t = p.page.render({ canvasContext: canvas.getContext("2d", { alpha: false }), viewport: vp });
+    p.rendering = t;
+    t.promise.then(function () {
+      p.rendering = null;
+      if (task.cancelled) return;
+      if (p.canvas) p.canvas.remove();
+      p.box.insertBefore(canvas, p.box.firstChild);
+      p.canvas = canvas;
+      p.renderedWidth = targetW;
+      // 大きくした後に戻した場合も、もう一度きれいに描く
+      if (Math.abs(Math.round(p.box.clientWidth * dpr) - targetW) > 4) renderPage(task, p);
+    }).catch(function () { p.rendering = null; });
+  }
+
+  /* ---------------- ホーム画面に追加 ---------------- */
+  var deferredPrompt = null;
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (document.body.getAttribute("data-screen") === "home") render(false);
+  });
+  window.addEventListener("appinstalled", function () { deferredPrompt = null; });
+
+  function isStandalone() {
+    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  }
+  function installDismissed() {
+    try { return localStorage.getItem("gtore-install-hide") === "1"; } catch (e) { return false; }
+  }
+  function installCardHTML() {
+    if (isStandalone() || installDismissed()) return "";
+    var ua = navigator.userAgent;
+    var isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var body;
+    if (deferredPrompt) {
+      body = "<strong>ホーム画面に追加できます</strong>アプリのように、すぐに開けるようになります。" +
+        '<br><button type="button" class="primary" id="installBtn">ホーム画面に追加する</button>';
+    } else if (isIOS) {
+      body = "<strong>ホーム画面に追加しよう</strong>Safariの下にある「共有」ボタン（□に↑）をおして、「ホーム画面に追加」をえらんでください。";
+    } else if (/Android/.test(ua)) {
+      body = "<strong>ホーム画面に追加しよう</strong>右上の「︙」メニューから「ホーム画面に追加」をえらんでください。";
+    } else {
+      return "";
+    }
+    return '<aside class="install-card" id="installCard"><span class="install-body">' + body +
+      '</span><button type="button" class="install-close" id="installClose" aria-label="とじる">×</button></aside>';
+  }
+  function wireInstallCard() {
+    var btn = document.getElementById("installBtn");
+    if (btn) btn.addEventListener("click", function () {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.finally(function () { deferredPrompt = null; render(false); });
+    });
+    var close = document.getElementById("installClose");
+    if (close) close.addEventListener("click", function () {
+      try { localStorage.setItem("gtore-install-hide", "1"); } catch (e) {}
+      var c = document.getElementById("installCard");
+      if (c) c.remove();
+    });
+  }
+
+  /* ---------------- その他 ---------------- */
+  function updateBarHeight() {
+    document.documentElement.style.setProperty("--bar-h", navBar.offsetHeight + "px");
+  }
+  window.addEventListener("resize", function () { updateBarHeight(); sizeDriveFrame(); });
+
+  backBtn.addEventListener("click", goUp);
+  document.getElementById("brandLink").addEventListener("click", function (e) { e.preventDefault(); go(null); });
+  window.addEventListener("popstate", function () { render(true); });
+
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    });
+  }
+
+  loadData().then(function () {
+    var r = routeFromURL();
+    history.replaceState({ app: true, depth: depthOf(r.subject, r.unit, r.topic) }, "", location.href);
+    render(false);
+  });
+})();

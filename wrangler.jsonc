@@ -1,0 +1,8 @@
+// Cloudflare の設定：public フォルダをそのままWebサイトとして公開します
+{
+  "name": "fukayagtore-kyozai",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public"
+  }
+}

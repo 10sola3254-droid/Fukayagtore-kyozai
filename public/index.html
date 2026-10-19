@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>学習空間 深谷上柴教室　Gトレ教材</title>
+  <meta name="description" content="学習空間 深谷上柴教室の生徒用 Gトレ教材（PDF）">
+  <meta name="theme-color" content="#1f2a44">
+
+  <!-- ホーム画面に追加（Android / iPhone） -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Gトレ教材">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-screen="home">
+  <header class="app-header" id="appHeader">
+    <a class="brand" href="./" id="brandLink" aria-label="ホームへ">
+      <img class="brand-mark" src="icons/icon-192.png" alt="" width="44" height="44">
+      <span class="brand-text">
+        <span class="brand-school">学習空間 深谷上柴教室</span>
+        <span class="brand-title">Gトレ教材</span>
+      </span>
+    </a>
+  </header>
+
+  <nav class="nav-bar" id="navBar" aria-label="現在地">
+    <button type="button" class="back-btn" id="backBtn">
+      <span aria-hidden="true" class="back-arrow">‹</span>もどる
+    </button>
+    <ol class="crumbs" id="crumbs"></ol>
+  </nav>
+
+  <main id="view" class="view" tabindex="-1"></main>
+
+  <script src="vendor/pdfjs/pdf.min.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
