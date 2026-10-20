@@ -14,7 +14,7 @@ import json, re, subprocess, sys, os, tempfile
 from xml.etree import ElementTree as ET
 
 CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫"
-UNIT = r"\d+章-[0-9０-９①-⑳]+(?:[・＋+][0-9０-９①-⑳]+)*"
+UNIT = r"\d+章-[0-9０-９①-⑳]+(?:[・＋+](?:\d+章-)?[0-9０-９①-⑳]+)*"
 
 
 def run(cmd):
@@ -170,6 +170,12 @@ def main(pdf):
         prefix = m.group(0) if m else lab
         kw = re.sub(r"[（）()]", "", lab[len(prefix):])
         cand = [e for e in explain if nz(e["unit"]) == prefix]
+        if not cand:
+            # 「4章-21・22」「4章-19・4章-19＋①」のように1つの見出しに単元が並ぶとき
+            def units_of(t):
+                ch = t.split("-")[0]
+                return [x if "章-" in x else ch + "-" + x for x in t.split("・")]
+            cand = [e for e in explain if prefix in units_of(nz(e["unit"]))]
         if not cand:
             base = prefix.split("・")[0].split("+")[0]
             cand = [e for e in explain if nz(e["unit"]).split("+")[0] == base]
