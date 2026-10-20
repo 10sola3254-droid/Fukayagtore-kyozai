@@ -14,6 +14,7 @@ import json, re, subprocess, sys, os, tempfile
 from xml.etree import ElementTree as ET
 
 CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫"
+UNIT = r"\d+章-[0-9０-９①-⑳]+(?:[・＋+][0-9０-９①-⑳]+)*"
 
 
 def run(cmd):
@@ -84,12 +85,14 @@ def table_cells(pdf, pageno, p):
     ws = p["words"]
     num = [w for w in ws if w[0] in tuple(CIRCLED)]
     # 「番号」の行（表の見出し）の丸数字
-    num_y = min(w[2] for w in num if w[2] > p["H"] * 0.6)
+    num_y = [w for w in ws if w[0] == "番号" and w[1] < 60 and w[2] > p["H"] * 0.5][-1][2]
     row_nums = sorted([w for w in num if abs(w[2] - num_y) < 3], key=lambda w: w[1])
     label = [w for w in ws if w[0] == "確認問題" and w[1] < 60 and w[2] > num_y]
     ox_y = label[0][2]
     top = num_y - 10
-    bottom = p["H"] - 40
+    # 表の下はし：左の見出し列（確認問題／解き直し／チェックテスト／○×）の一番下＋少し
+    labels = [w for w in ws if w[1] < 110 and w[2] > num_y and w[0] in ("確認問題", "解き直し", "チェックテスト", "○×", "✓", "単元")]
+    bottom = max(w[4] for w in labels) + 12
     vx, s, y0, a = grid_lines(pdf, pageno, p, top, bottom)
     vlines = group(vx)  # px
     # 横線：表の幅の8割以上が暗い行
@@ -120,29 +123,65 @@ def main(pdf):
     qp = P[quiz_i]
     nums, cells = table_cells(pdf, quiz_i + 1, qp)
     ws = qp["words"]
-    num_words = {CIRCLED.index(w[0]) + 1: w for w in ws if w[0] in tuple(CIRCLED) and w[2] > qp["H"] * 0.6}
-    unit_row_y = [w for w in ws if w[0] == "単元" and w[1] < 60 and w[2] > qp["H"] * 0.6][0][2]
+    num_y = [w for w in ws if w[0] == "番号" and w[1] < 60 and w[2] > qp["H"] * 0.5][-1][2]
+    num_words = {CIRCLED.index(w[0]) + 1: w for w in ws if w[0] in tuple(CIRCLED) and abs(w[2] - num_y) < 3}
+    ox_y = [w for w in ws if w[0] == "確認問題" and w[1] < 60 and w[2] > num_y][0][2]
+    band = [w for w in ws if num_y + 6 < w[2] < ox_y - 2 and w[1] > 100]
+    # 単元の行の文字をセルごとにまとめる（2行に分かれたセル・結合セルにも対応）
+    cells_txt = []
+    for w in sorted(band, key=lambda w: (w[1] + w[3]) / 2):
+        cx = (w[1] + w[3]) / 2
+        if cells_txt and abs(cells_txt[-1]["cx"] - cx) < 14:
+            cells_txt[-1]["words"].append(w)
+        else:
+            cells_txt.append({"cx": cx, "words": [w]})
+    for c in cells_txt:
+        c["text"] = "".join(w[0] for w in sorted(c["words"], key=lambda w: (round(w[2]), w[1])))
     units = {}
-    for w in ws:
-        if re.fullmatch(r"3章-\d+", w[0]) and abs(w[2] - unit_row_y) < 3:
-            cx = (w[1] + w[3]) / 2
-            n = min(num_words, key=lambda k: abs((num_words[k][1] + num_words[k][3]) / 2 - cx))
-            units[n] = w[0]
+    for n, nw in num_words.items():
+        cx = (nw[1] + nw[3]) / 2
+        c = min(cells_txt, key=lambda c: abs(c["cx"] - cx))
+        units[n] = c["text"]
     questions = [{"n": n, "mark": CIRCLED[n - 1], "unit": units.get(n, "")} for n in nums]
 
-    # 解説ページ：単元の見出し（ページ上部の大きな「3章-○○」）
+    # 解説ページ：単元の見出し（ページ上部の大きな「○章-○○」）と、その行の題名
     explain = []
     for i in explain_is:
         p = P[i]
-        heads = sorted([w for w in p["words"] if re.fullmatch(r"3章-\d+", w[0]) and w[2] < 130 and (w[4] - w[2]) > 14], key=lambda w: w[2])
+        heads = sorted([w for w in p["words"] if re.fullmatch(UNIT, w[0]) and w[2] < 130 and (w[4] - w[2]) > 14], key=lambda w: w[2])
         footer = p["H"] - 52
         for k, h in enumerate(heads):
             end = heads[k + 1][2] - 8 if k + 1 < len(heads) else footer
+            title = "".join(w[0] for w in sorted(p["words"], key=lambda w: w[1]) if abs(w[2] - h[2]) < 6 and w[1] > h[3])
             explain.append({
-                "unit": h[0], "page": i + 1,
+                "unit": h[0], "title": title, "page": i + 1,
                 "heading": frac(p, 28, h[2] - 14, p["W"] - 28, h[4] + 8),
                 "area": frac(p, 28, h[2] - 14, p["W"] - 28, end),
             })
+
+    # 問題ごとに、読む解説を決める（単元名がそろうもの → 見出しの言葉が近いもの）
+    import unicodedata
+    nz = lambda t: re.sub(r"\s", "", unicodedata.normalize("NFKC", t))
+    for e in explain:
+        e["for"] = []
+    for qq in questions:
+        lab = nz(qq["unit"])
+        m = re.match(nz_unit := r"\d+章-[0-9]+(?:[・+][0-9]+)*", lab)
+        prefix = m.group(0) if m else lab
+        kw = re.sub(r"[（）()]", "", lab[len(prefix):])
+        cand = [e for e in explain if nz(e["unit"]) == prefix]
+        if not cand:
+            base = prefix.split("・")[0].split("+")[0]
+            cand = [e for e in explain if nz(e["unit"]).split("+")[0] == base]
+        if kw and cand:
+            score = lambda e: sum(1 for ch in set(kw) if ch in nz(e["title"]))
+            best = max(score(e) for e in cand)
+            if best > 0:
+                cand = [e for e in cand if score(e) == best]
+        if not cand:
+            print("  ⚠ 解説が見つからない問題:", qq["mark"], qq["unit"])
+        for e in cand:
+            e["for"].append(qq["n"])
 
     # チェックテスト：「確認問題①と同じ型」の位置から各問題の枠を決める
     tp = P[test_i]
@@ -163,9 +202,16 @@ def main(pdf):
         nxt = [r for r in ys if r > row + 4]
         bottom = (nxt[0] - 24) if nxt else footer - 6
         left_col = x < tp["W"] / 2
-        x0 = 30 if left_col else tp["W"] / 2 + 8
-        x1 = tp["W"] / 2 - 4 if left_col else tp["W"] - 30
+        same_row = [m2 for m2 in marks if abs(m2[2] - y) < 4]
+        if len(same_row) == 1:
+            x0, x1 = 30, tp["W"] - 30
+        else:
+            x0 = 30 if left_col else tp["W"] / 2 + 8
+            x1 = tp["W"] / 2 - 4 if left_col else tp["W"] - 30
         test.append({"n": n, "page": test_i + 1, "rect": frac(tp, x0, y - 8, x1, bottom)})
+
+    if sorted(t["n"] for t in test) != sorted(nums):
+        print("  ⚠ チェックテストの番号が表と合いません:", sorted(t["n"] for t in test), nums)
 
     out = {
         "pages": {"quiz": quiz_i + 1, "test": test_i + 1, "explain": [i + 1 for i in explain_is]},
@@ -179,7 +225,7 @@ def main(pdf):
         json.dump(out, f, ensure_ascii=False, indent=1)
     print("書きました:", dst)
     print(" 問題:", [(q["mark"], q["unit"]) for q in questions])
-    print(" 解説の単元:", [(e["unit"], "p." + str(e["page"])) for e in explain])
+    print(" 解説:", [("p." + str(e["page"]), e["unit"], "".join(CIRCLED[n - 1] for n in e["for"])) for e in explain])
     print(" チェックテスト:", [t["n"] for t in test])
 
 

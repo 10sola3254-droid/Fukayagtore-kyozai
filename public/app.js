@@ -616,8 +616,11 @@
       // 解説：×だった問題の単元に色をつける
       if (st.phase === "explain" || st.phase === "test") {
         (cfg.explain || []).forEach(function (e) {
-          if (e.page !== p.num || !wrongUnits[e.unit]) return;
-          var nums = wrongUnits[e.unit].map(function (x) { return CIRC[x.n - 1]; }).join("");
+          if (e.page !== p.num) return;
+          // e.for：この解説を読むべき問題の番号（位置データに入っている）
+          var hit = e.for ? wrong.filter(function (x) { return e.for.indexOf(x.n) !== -1; }) : (wrongUnits[e.unit] || []);
+          if (!hit.length) return;
+          var nums = hit.map(function (x) { return CIRC[x.n - 1]; }).join("");
           var area = mkEl("hl hl-area hl-explain");
           placeRect(area, e.area);
           var head = mkEl("hl hl-head hl-explain");
