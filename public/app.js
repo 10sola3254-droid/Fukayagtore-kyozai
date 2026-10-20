@@ -722,7 +722,9 @@
         main.textContent = "チェックテストへ ›";
         q.action = function () { goTest(task); };
       } else {
-        hint.textContent = "表をタップして ○ × をつけよう（" + marked + "／" + total + "）";
+        // 記録表のない教材は、下の番号ボタンでつける
+        var where = (q.cfg.cells && q.cfg.cells.length) ? "表" : "番号";
+        hint.textContent = where + "をタップして ○ × をつけよう（" + marked + "／" + total + "）";
         main.hidden = true;
       }
     } else if (phase === "explain") {
