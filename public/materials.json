@@ -113,5 +113,9 @@
   {"教科": "理科", "単元": "オリジナル要点と対策", "細かい単元": "26 補強 仕事・斜面・てこ・滑車の計算", "URL": "materials/rika-yoten-26-hokyo.pdf"},
   {"教科": "理科", "単元": "オリジナル要点と対策", "細かい単元": "27 天体の動きと地球の運動", "URL": "materials/rika-yoten-27.pdf"},
   {"教科": "理科", "単元": "オリジナル要点と対策", "細かい単元": "28 地軸の傾きと季節、太陽系と宇宙", "URL": "materials/rika-yoten-28.pdf"},
-  {"教科": "理科", "単元": "オリジナル要点と対策", "細かい単元": "27・28 補強 天体の動き（計算と作図の型）", "URL": "materials/rika-yoten-27-28-hokyo.pdf"}
+  {"教科": "理科", "単元": "オリジナル要点と対策", "細かい単元": "27・28 補強 天体の動き（計算と作図の型）", "URL": "materials/rika-yoten-27-28-hokyo.pdf"},
+  {"教科": "英語", "単元": "中1 一般動詞", "細かい単元": "一般動詞 I play ～. / Do you ～?「～します」", "URL": "materials/english-1-ippandoushi.pdf"},
+  {"教科": "英語", "単元": "中1 疑問詞", "細かい単元": "疑問詞（一般動詞） What do you ～?「何を～しますか」", "URL": "materials/english-1-gimonshi.pdf"},
+  {"教科": "英語", "単元": "中1 三単現", "細かい単元": "三単現 He plays ～（動詞に s）「（彼・彼女などが）～する」", "URL": "materials/english-1-santangen.pdf"},
+  {"教科": "英語", "単元": "中1 代名詞", "細かい単元": "代名詞 I / my / me / mine「私は・私の・私を・私のもの」", "URL": "materials/english-1-daimeishi.pdf"}
 ]
