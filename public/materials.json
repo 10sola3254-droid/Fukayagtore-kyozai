@@ -117,5 +117,10 @@
   {"教科": "英語", "単元": "中1 一般動詞", "細かい単元": "一般動詞 I play ～. / Do you ～?「～します」", "URL": "materials/english-1-ippandoushi.pdf"},
   {"教科": "英語", "単元": "中1 疑問詞", "細かい単元": "疑問詞（一般動詞） What do you ～?「何を～しますか」", "URL": "materials/english-1-gimonshi.pdf"},
   {"教科": "英語", "単元": "中1 三単現", "細かい単元": "三単現 He plays ～（動詞に s）「（彼・彼女などが）～する」", "URL": "materials/english-1-santangen.pdf"},
-  {"教科": "英語", "単元": "中1 代名詞", "細かい単元": "代名詞 I / my / me / mine「私は・私の・私を・私のもの」", "URL": "materials/english-1-daimeishi.pdf"}
+  {"教科": "英語", "単元": "中1 代名詞", "細かい単元": "代名詞 I / my / me / mine「私は・私の・私を・私のもの」", "URL": "materials/english-1-daimeishi.pdf"},
+  {"教科": "英語", "単元": "中2 未来の文", "細かい単元": "未来の文 I will ～. / I'm going to ～.「～するつもりだ」", "URL": "materials/english-2-mirai.pdf"},
+  {"教科": "英語", "単元": "中2 義務の表現", "細かい単元": "義務の表現 must ～ / have to ～「～しなければならない」", "URL": "materials/english-2-gimu.pdf"},
+  {"教科": "英語", "単元": "中2 助動詞", "細かい単元": "助動詞 should ～ / may ～「～すべきだ・～かもしれない」", "URL": "materials/english-2-jodoushi.pdf"},
+  {"教科": "英語", "単元": "中2 不定詞", "細かい単元": "不定詞 to ＋ 動詞の原形「～すること・～するために」", "URL": "materials/english-2-futeishi.pdf"},
+  {"教科": "英語", "単元": "中2 動名詞", "細かい単元": "動名詞 I enjoy ～ing. / Playing ～ is ….「～すること」", "URL": "materials/english-2-doumeishi.pdf"}
 ]
