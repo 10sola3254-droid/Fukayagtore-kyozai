@@ -14,7 +14,7 @@ import json, re, subprocess, sys, os, tempfile
 from xml.etree import ElementTree as ET
 
 CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫"
-UNIT = r"\d+章-[0-9０-９①-⑳]+(?:[・＋+](?:\d+章-)?[0-9０-９①-⑳]+)*"
+UNIT = r"(?:\d+章-[0-9０-９①-⑳]+(?:[・＋+](?:\d+章-)?[0-9０-９①-⑳]+)*|§[0-9０-９]+)"
 
 
 def run(cmd):
