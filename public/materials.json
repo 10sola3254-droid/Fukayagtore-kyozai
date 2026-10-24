@@ -142,5 +142,12 @@
   {"教科": "英語", "単元": "中2 受け身", "細かい単元": "英語08 受け身 This room is cleaned ～.「～される」", "URL": "materials/english-08-2-ukemi.pdf"},
   {"教科": "英語", "単元": "中2 接続詞", "細かい単元": "英語09 接続詞 when / if / because / that", "URL": "materials/english-09-2-setsuzokushi.pdf"},
   {"教科": "英語", "単元": "中2 動名詞", "細かい単元": "英語10 動名詞 I enjoy ～ing. / Playing ～ is ….「～すること」", "URL": "materials/english-10-2-doumeishi.pdf"},
-  {"教科": "英語", "単元": "中2 比較①", "細かい単元": "英語11 比較① taller than ～ / the tallest「～より…・いちばん…」", "URL": "materials/english-11-2-hikaku1.pdf"}
+  {"教科": "英語", "単元": "中2 比較①", "細かい単元": "英語11 比較① taller than ～ / the tallest「～より…・いちばん…」", "URL": "materials/english-11-2-hikaku1.pdf"},
+  {"教科": "数学", "単元": "中1 北辰チェックテスト", "細かい単元": "北辰1-1 正負の数（入試対策チェックテスト）", "URL": "materials/hokushin-chu1-1-seifu.pdf"},
+  {"教科": "数学", "単元": "中1 北辰チェックテスト", "細かい単元": "北辰1-2 文字の式（入試対策チェックテスト）", "URL": "materials/hokushin-chu1-2-mojishiki.pdf"},
+  {"教科": "数学", "単元": "中1 北辰チェックテスト", "細かい単元": "北辰1-3 方程式（入試対策チェックテスト）", "URL": "materials/hokushin-chu1-3-hoteishiki.pdf"},
+  {"教科": "数学", "単元": "中1 北辰チェックテスト", "細かい単元": "北辰1-4 比例と反比例（入試対策チェックテスト）", "URL": "materials/hokushin-chu1-4-hirei.pdf"},
+  {"教科": "数学", "単元": "中1 北辰チェックテスト", "細かい単元": "北辰1-5 平面図形（入試対策チェックテスト）", "URL": "materials/hokushin-chu1-5-heimen.pdf"},
+  {"教科": "数学", "単元": "中1 北辰チェックテスト", "細かい単元": "北辰1-6 空間図形（入試対策チェックテスト）", "URL": "materials/hokushin-chu1-6-kuukan.pdf"},
+  {"教科": "数学", "単元": "中1 北辰チェックテスト", "細かい単元": "北辰1-7 データの活用（入試対策チェックテスト）", "URL": "materials/hokushin-chu1-7-data.pdf"}
 ]
