@@ -136,5 +136,9 @@
   {"教科": "英語", "単元": "中2 義務の表現", "細かい単元": "義務の表現 must ～ / have to ～「～しなければならない」", "URL": "materials/english-2-gimu.pdf"},
   {"教科": "英語", "単元": "中2 助動詞", "細かい単元": "助動詞 should ～ / may ～「～すべきだ・～かもしれない」", "URL": "materials/english-2-jodoushi.pdf"},
   {"教科": "英語", "単元": "中2 不定詞", "細かい単元": "不定詞 to ＋ 動詞の原形「～すること・～するために」", "URL": "materials/english-2-futeishi.pdf"},
-  {"教科": "英語", "単元": "中2 動名詞", "細かい単元": "動名詞 I enjoy ～ing. / Playing ～ is ….「～すること」", "URL": "materials/english-2-doumeishi.pdf"}
+  {"教科": "英語", "単元": "中2 動名詞", "細かい単元": "動名詞 I enjoy ～ing. / Playing ～ is ….「～すること」", "URL": "materials/english-2-doumeishi.pdf"},
+  {"教科": "数学", "単元": "中1 分数の計算", "細かい単元": "小学校の通分・約分／正負の数・文字式・方程式の分数（分数トレーニング①）", "URL": "materials/bunsu-1-shogaku-chu1-r1.pdf"},
+  {"教科": "数学", "単元": "中1 分数の計算", "細かい単元": "反比例・おうぎ形・四角すいの体積・相対度数の分数（分数トレーニング②）", "URL": "materials/bunsu-2-chu1-r1.pdf"},
+  {"教科": "数学", "単元": "中2 分数の計算", "細かい単元": "式の計算・連立方程式・一次関数の分数（分数トレーニング③）", "URL": "materials/bunsu-3-chu2-r1.pdf"},
+  {"教科": "数学", "単元": "中3 分数の計算", "細かい単元": "展開と因数分解・平方根・解の公式の分数（分数トレーニング④）", "URL": "materials/bunsu-4-chu3-r1.pdf"}
 ]
