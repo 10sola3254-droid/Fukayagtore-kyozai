@@ -433,7 +433,7 @@
   }
 
   function stopPdf() {
-    document.body.classList.remove("has-quiz");
+    document.body.classList.remove("has-quiz"); document.body.classList.remove("quiz-many");
     if (currentPdfTask) { currentPdfTask.cancelled = true; currentPdfTask.cleanup(); currentPdfTask = null; }
   }
 
@@ -600,7 +600,7 @@
           var b = document.createElement("button");
           b.type = "button";
           b.className = "q-cell";
-          b.setAttribute("aria-label", "確認問題" + CIRC[c.n - 1] + " " + ({ o: "○", x: "×" }[st.marks[c.n]] || "まだ"));
+          b.setAttribute("aria-label", (cfg.mode === "hokushin" ? "問題" + c.n : "確認問題" + CIRC[c.n - 1]) + " " + ({ o: "○", x: "×" }[st.marks[c.n]] || "まだ"));
           placeRect(b, c);
           var mark = st.marks[c.n];
           if (mark) {
@@ -653,6 +653,7 @@
     if (next) q.st.marks[n] = next; else delete q.st.marks[n];
     // ○×を変えたら、まず解説の段階からやり直し（色がずれないように）
     if (q.st.phase === "test") q.st.phase = "explain";
+    if (q.cfg.mode === "hokushin") q.st.phase = "mark";
     if (!quizWrong(q).length) q.st.phase = "mark";
     q.resetArmed = false;
     saveQuizState(q);
@@ -696,12 +697,14 @@
     var chips = document.getElementById("qbChips");
     if (!chips) return;
     chips.innerHTML = "";
+    chips.classList.toggle("many", q.cfg.questions.length > 12);
+    document.body.classList.toggle("quiz-many", q.cfg.questions.length > 12);
     q.cfg.questions.forEach(function (x) {
       var b = document.createElement("button");
       b.type = "button";
       var mk = q.st.marks[x.n];
       b.className = "qc" + (mk ? " " + mk : "");
-      b.innerHTML = '<span class="qc-n">' + (CIRC[x.n - 1] || x.n) + '</span><span class="qc-m">' + (mk === "o" ? "○" : mk === "x" ? "×" : "−") + "</span>";
+      b.innerHTML = '<span class="qc-n">' + esc(x.label || CIRC[x.n - 1] || x.n) + '</span><span class="qc-m">' + (mk === "o" ? "○" : mk === "x" ? "×" : "−") + "</span>";
       b.addEventListener("click", function () { cycleMark(task, x.n); });
       chips.appendChild(b);
     });
@@ -712,6 +715,28 @@
     var phase = q.st.phase;
     q.action = null;
     main.hidden = false;
+    var panel = document.getElementById("qbPanel");
+    if (panel) panel.remove();
+    if (q.cfg.mode === "hokushin") {
+      // 北辰チェックテスト：×の問題 → もどるGトレ教材を開く
+      if (phase === "review" && wrong.length) {
+        hint.textContent = "×の問題は、この教材にもどって復習しよう";
+        buildReviewPanel(task, wrong);
+        main.textContent = "‹ ○×にもどる";
+        q.action = function () { q.st.phase = "mark"; saveQuizState(q); refreshQuiz(task); };
+      } else if (wrong.length) {
+        hint.textContent = "× が " + wrong.length + "問";
+        main.textContent = "×の問題のGトレ教材を見る ›";
+        q.action = function () { q.st.phase = "review"; saveQuizState(q); refreshQuiz(task); quizScrollTo("#qbPanel", q.cfg.pages.quiz, task); };
+      } else if (marked === total) {
+        hint.textContent = "ぜんぶ ○！ すごい";
+        main.hidden = true;
+      } else {
+        hint.textContent = "答え合わせ表をタップして ○ × をつけよう（" + marked + "／" + total + "）";
+        main.hidden = true;
+      }
+      return;
+    }
     if (phase === "mark") {
       if (wrong.length) {
         hint.textContent = "× が " + wrong.length + "問";
@@ -736,6 +761,38 @@
       main.textContent = "‹ 解説にもどる";
       q.action = function () { goExplain(task); };
     }
+  }
+
+  // 北辰モード：×の問題を、もどるGトレ教材ごとにまとめて表示
+  function buildReviewPanel(task, wrong) {
+    var bar = document.getElementById("quizBar");
+    if (!bar) return;
+    var groups = [], map = {};
+    wrong.forEach(function (x) {
+      var k = (x.unit || "") + "|" + (x.topic || "");
+      if (!map[k]) { map[k] = { unit: x.unit, topic: x.topic, qs: [] }; groups.push(map[k]); }
+      map[k].qs.push(x.label || CIRC[x.n - 1] || x.n);
+    });
+    var panel = mkEl("qb-panel");
+    panel.id = "qbPanel";
+    groups.forEach(function (g) {
+      var units = DATA["数学"] || [];
+      var unit = findByName(units, g.unit, function (u) { return u.name; });
+      var topic = null;
+      if (unit) {
+        var byCode = unit.topics.filter(function (t) { return norm(splitTopic(t.title).code) === norm(g.topic); });
+        topic = byCode.length === 1 ? byCode[0] : findByName(unit.topics, g.topic, function (t) { return t.title; });
+      }
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "qb-link" + (topic ? "" : " none");
+      var title = topic ? topic.title : (g.unit + " " + g.topic);
+      b.innerHTML = '<span class="qb-link-q">× ' + esc(g.qs.join("・")) + '</span>' +
+        '<span class="qb-link-t">' + esc(title) + (topic ? " ›" : "（準備中）") + "</span>";
+      if (topic) b.addEventListener("click", function () { go("数学", unit, topic); });
+      panel.appendChild(b);
+    });
+    bar.insertBefore(panel, document.getElementById("qbMain"));
   }
 
   function quizScrollTo(sel, fallbackPageNum, task) {

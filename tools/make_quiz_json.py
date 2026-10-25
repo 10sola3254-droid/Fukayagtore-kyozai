@@ -38,7 +38,7 @@ def pages_words(pdf):
 def page_kind(p):
     """ページ上端の帯の文字で種類を判定"""
     head = [w for w in p["words"] if w[2] < 60]
-    txt = "".join(w[0] for w in sorted(head, key=lambda w: (round(w[2]), w[1])))
+    txt = "".join(w[0] for w in sorted(head, key=lambda w: (round(w[4] / 6), w[1])))
     for key, kind in (("チェックテスト", "test"), ("確認問題", "quiz"), ("解答・解説", "answer"), ("解説", "explain")):
         if txt.startswith(key):
             return kind

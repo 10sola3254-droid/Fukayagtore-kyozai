@@ -451,7 +451,19 @@ body[data-screen="viewer"] .view {
   box-shadow: 0 -4px 14px rgba(20, 30, 60, .12);
   padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
 }
-.qb-chips { display: flex; gap: 5px; justify-content: center; margin-bottom: 6px; }
+.qb-chips { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 6px; }
+.qb-chips.many .qc { flex: 0 0 auto; width: 40px; max-width: none; min-height: 38px; }
+.qb-chips.many .qc-n { font-size: 10px; }
+.qb-chips.many .qc-m { font-size: 15px; }
+.qb-panel { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; max-height: 42vh; overflow-y: auto; }
+.qb-link {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left;
+  padding: 8px 12px; border: 1.5px solid #f97316; border-radius: 12px; background: #fff7ed; cursor: pointer; font: inherit;
+}
+.qb-link.none { border-color: #cbd5e1; background: #f1f5f9; cursor: default; }
+.qb-link-q { font-size: 12px; font-weight: 800; color: #b91c1c; }
+.qb-link-t { font-size: 14px; font-weight: 800; color: var(--ink); line-height: 1.3; }
+body.has-quiz.quiz-many .pdf-pages { padding-bottom: calc(230px + env(safe-area-inset-bottom)); }
 .qc {
   flex: 1 1 0; max-width: 48px; min-height: 44px; padding: 1px 0; border: 0; border-radius: 10px;
   background: #eceef3; color: #5b6475; cursor: pointer;
