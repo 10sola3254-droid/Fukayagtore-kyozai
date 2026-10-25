@@ -45,6 +45,71 @@ def group(idx):
     return out
 
 
+def render_gray(pdf, pageno, dpi=200):
+    from PIL import Image
+    import numpy as np
+    with tempfile.TemporaryDirectory() as td:
+        run(["pdftoppm", "-r", str(dpi), "-f", str(pageno), "-l", str(pageno), "-gray", "-png", pdf, td + "/g"])
+        f = [x for x in os.listdir(td) if x.endswith(".png")][0]
+        return np.array(Image.open(os.path.join(td, f)).convert("L"))
+
+
+def main_vertical(pdf, mapfile, P, pageno, p):
+    """中1北辰テストの形式: 縦長の表(問題｜内容｜○×｜まちがえたら復習する教材)。
+    map.json: {"rows": [["1 (1)〜(3)", "A"], ...], "leg": {"A": [単元, 細かい単元], ...}}
+    rows のラベルは表の「問題」列の文字(空白なし)と一致させる。"""
+    mp = json.load(open(mapfile, encoding="utf-8"))
+    ws = p["words"]
+    ox = [w for w in ws if w[0] == "○×"][0]
+    mon = [w for w in ws if w[0] == "問題" and abs(w[2] - ox[2]) < 3][0]
+    naiyo = [w for w in ws if w[0] == "内容" and abs(w[2] - ox[2]) < 3][0]
+    a = render_gray(pdf, pageno)
+    s = 200 / 72.0
+    W, H = p["W"], p["H"]
+    # 表の範囲: 見出し行から、問題列の最後の文字の下まで
+    col_words = [w for w in ws if w[2] > ox[4] and w[1] < naiyo[1] - 5 and w[1] > 20]
+    bottom_pt = max(w[4] for w in col_words) + 14
+    y0, y1 = int((ox[2] - 6) * s), int(bottom_pt * s)
+    # 縦線(うすい灰色も拾う): 表の高さの6割以上
+    reg = a[y0:y1, :] < 225
+    vx = group([i for i, v in enumerate(reg.mean(axis=0)) if v > 0.6])
+    cx = (ox[1] + ox[3]) / 2 * s
+    left = max(v for v in vx if v < cx); right = min(v for v in vx if v > cx)
+    # 横線: ○×列の中で、幅の8割以上が暗い行
+    dark = (a[y0:y1, int(left) + 3:int(right) - 3] < 225).mean(axis=1)
+    hl = [y0 + i for i in group([i for i, v in enumerate(dark) if v > 0.8])]
+    # 行: 問題列の文字を y で束ねる
+    rows_y = []
+    for w in sorted(col_words, key=lambda w: w[2]):
+        if rows_y and w[2] - rows_y[-1][1] < 14:
+            rows_y[-1][1] = max(rows_y[-1][1], w[4]); rows_y[-1][2].append(w)
+        else:
+            rows_y.append([w[2], w[4], [w]])
+    # 行の境界(横線)でさらに区切る: 2行に折り返したラベルは同じ行
+    cells, labels = [], []
+    for k in range(len(hl) - 1):
+        top, bot = hl[k], hl[k + 1]
+        inside = [w for w in col_words if top / s < (w[2] + w[4]) / 2 < bot / s]
+        if not inside:
+            continue
+        label = "".join(w[0] for w in sorted(inside, key=lambda w: (round(w[2]), w[1])))
+        labels.append(label)
+        cells.append({"x": round(left / s / W, 4), "y": round(top / s / H, 4), "w": round((right - left) / s / W, 4), "h": round((bot - top) / s / H, 4)})
+    rows = mp["rows"]
+    nz = lambda t: re.sub(r"\s", "", t)
+    if [nz(l) for l in labels] != [nz(r[0]) for r in rows]:
+        print("⚠ 行ラベルが合いません\n  PDF:", labels, "\n  map:", [r[0] for r in rows])
+    questions = []
+    for n, (lab, row) in enumerate(zip(labels, rows), 1):
+        unit, topic = mp["leg"][row[1]]
+        questions.append({"n": n, "label": lab, "unit": unit, "topic": topic})
+        cells[n - 1]["n"] = n
+    out = {"mode": "hokushin", "pages": {"quiz": pageno}, "questions": questions, "cells": cells[:len(questions)]}
+    dst = re.sub(r"\.pdf$", ".json", pdf, flags=re.I)
+    json.dump(out, open(dst, "w", encoding="utf-8"), ensure_ascii=False)
+    print("OK:", dst, len(questions), "行")
+
+
 def main(pdf, mapfile):
     mp = json.load(open(mapfile, encoding="utf-8"))
     P = pages_words(pdf)
@@ -56,6 +121,8 @@ def main(pdf, mapfile):
         sys.exit("⚠ 「答え合わせ表」が見つかりません")
     p = p_
     ws = p["words"]
+    if any(w[0] == "まちがえたら復習する教材" for w in ws):
+        return main_vertical(pdf, mapfile, P, pageno, p)
     title_y = [w for w in ws if w[0].startswith("答え合わせ表")][0][2]
     ox = [w for w in ws if w[0] == "○×" and w[2] > title_y][0]
     mon = [w for w in ws if w[0] == "問題" and w[2] > title_y and w[2] < ox[2]][-1]

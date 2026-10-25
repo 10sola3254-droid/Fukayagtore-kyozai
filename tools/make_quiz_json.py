@@ -148,7 +148,7 @@ def main(pdf):
     explain = []
     for i in explain_is:
         p = P[i]
-        heads = sorted([w for w in p["words"] if re.fullmatch(UNIT, w[0]) and w[2] < 130 and (w[4] - w[2]) > 14], key=lambda w: w[2])
+        heads = sorted([w for w in p["words"] if re.fullmatch(UNIT, w[0]) and w[2] < p["H"] - 60 and (w[4] - w[2]) > 14], key=lambda w: w[2])
         footer = p["H"] - 52
         for k, h in enumerate(heads):
             end = heads[k + 1][2] - 8 if k + 1 < len(heads) else footer
