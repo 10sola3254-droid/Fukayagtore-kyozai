@@ -180,6 +180,7 @@
   {"教科": "英語", "単元": "語形変化", "細かい単元": "語形変化01 動詞を適する形に直す「原形・過去形・ing形・過去分詞」", "URL": "materials/english-gokei-01-doushi.pdf"},
   {"教科": "英語", "単元": "語形変化", "細かい単元": "語形変化02 名詞・形容詞・代名詞の形「複数形・比較級・代名詞・序数」", "URL": "materials/english-gokei-02-meishi.pdf"},
   {"教科": "英語", "単元": "単語", "細かい単元": "単語01 曜日・月・季節・数字「つづりを書けるようにする」", "URL": "materials/english-tango-01-youbi-tsuki-kazu.pdf"},
+  {"教科": "英語", "単元": "リスニング", "細かい単元": "リスニング01 サンプル 会話を聞いて答える（音声つき）", "URL": "listen/listening-sample-01.html"},
   {"教科": "数学", "単元": "中1 北辰チェックテスト", "細かい単元": "北辰1-1 正負の数（入試対策チェックテスト）", "URL": "materials/hokushin-chu1-1-seifu.pdf"},
   {"教科": "数学", "単元": "中1 北辰チェックテスト", "細かい単元": "北辰1-2 文字の式（入試対策チェックテスト）", "URL": "materials/hokushin-chu1-2-mojishiki.pdf"},
   {"教科": "数学", "単元": "中1 北辰チェックテスト", "細かい単元": "北辰1-3 方程式（入試対策チェックテスト）", "URL": "materials/hokushin-chu1-3-hoteishiki.pdf"},

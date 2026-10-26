@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>リスニング01 サンプル</title>
+<style>
+  :root { --blue:#1F4E79; --red:#C00000; --green:#2E7D32; --orange:#C07000; --ink:#1d1d1d; --soft:#f3f7fb; --hi:#fff1c2; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --ink:#eee; --soft:#1e2a36; --hi:#4a3d12; --blue:#8fb8e0; }
+  }
+  :root[data-theme="dark"] { --ink:#eee; --soft:#1e2a36; --hi:#4a3d12; --blue:#8fb8e0; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body { background:#fff; color:var(--ink); background-color:#fff; font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif; line-height:1.6; -webkit-text-size-adjust:100%; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body { background:#15191e; } }
+  :root[data-theme="dark"] body { background:#15191e; }
+  .wrap { max-width:720px; margin:0 auto; padding:12px 16px 40px; }
+  h1 { font-size:20px; color:var(--blue); margin:8px 0 4px; }
+  .sub { font-size:13px; opacity:.8; margin:0 0 10px; }
+  .chip { display:inline-block; font-size:12px; color:#fff; background:var(--blue); border-radius:4px; padding:1px 8px; margin-right:6px; }
+
+  /* 再生バー（上に固定） */
+  .bar { position:sticky; top:0; z-index:5; background:var(--soft); border:1.5px solid var(--blue); border-radius:10px; padding:10px; margin:8px 0 12px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  button { font:inherit; cursor:pointer; }
+  .btn { border:1.5px solid var(--blue); background:#fff; color:var(--blue); border-radius:8px; padding:8px 12px; min-height:44px; min-width:44px; font-weight:700; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn { background:#15191e; } }
+  .btn.main { background:var(--blue); color:#fff; min-width:96px; }
+  .btn[aria-pressed="true"] { background:var(--blue); color:#fff; }
+  .seek { flex:1 1 160px; min-width:120px; accent-color:var(--blue); }
+  .time { font-size:13px; font-variant-numeric:tabular-nums; min-width:92px; text-align:right; }
+  .opt { font-size:14px; display:flex; align-items:center; gap:6px; }
+  .opt input { width:20px; height:20px; accent-color:var(--blue); }
+
+  .note { font-size:13px; color:var(--green); margin:0 0 10px; }
+
+  /* 台本 */
+  .line { border-radius:8px; padding:8px 10px; margin:6px 0; border-left:4px solid transparent; cursor:pointer; }
+  .line:active { background:var(--soft); }
+  .line.on { background:var(--hi); border-left-color:var(--orange); }
+  .who { display:inline-block; font-size:12px; font-weight:700; color:#fff; background:var(--blue); border-radius:4px; padding:0 7px; margin-bottom:2px; }
+  .who.Emi { background:#8a4b9c; }
+  .who.Q { background:var(--orange); }
+  .en { font-size:17px; line-height:2.3; word-break:normal; overflow-wrap:break-word; }
+  .en ruby { ruby-position:over; white-space:nowrap; }
+  .en rt { font-size:10px; color:var(--blue); letter-spacing:0; }
+  .jp { font-size:14px; color:var(--ink); opacity:.85; margin-top:0; }
+  .choices .line { cursor:pointer; }
+  h2 { font-size:16px; color:var(--blue); border-left:5px solid var(--blue); padding-left:8px; margin:20px 0 4px; }
+  details { margin-top:14px; border:1.5px dashed var(--green); border-radius:8px; padding:8px 12px; }
+  summary { color:var(--green); font-weight:700; cursor:pointer; min-height:36px; }
+  .ans { font-size:15px; margin:6px 0 2px; }
+  .ans b { color:var(--red); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="chip">リスニング</span><span class="chip">サンプル</span>
+  <h1>会話を聞いて答える（類題）</h1>
+  <p class="sub">英文の上は発音のカタカナ、英文の下は日本語です。音声を流しながら台本を読めます。</p>
+
+  <div class="bar" id="bar">
+    <div class="row">
+      <button type="button" class="btn main" id="play" aria-label="再生・一時停止">▶ 再生</button>
+      <button type="button" class="btn" id="again" aria-label="最初からもう一度">↺ 最初から</button>
+      <input type="range" class="seek" id="seek" min="0" max="100" step="0.1" value="0" aria-label="再生位置">
+      <span class="time" id="time">0:00 / 0:00</span>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <span class="opt">速さ</span>
+      <button type="button" class="btn" data-rate="0.8" aria-pressed="false">ゆっくり</button>
+      <button type="button" class="btn" data-rate="1" aria-pressed="true">ふつう</button>
+      <label class="opt"><input type="checkbox" id="twice" checked>本番どおり2回流す</label>
+    </div>
+  </div>
+
+  <p class="note">行をタップすると、その場面から流れます。</p>
+
+  <div id="script"></div>
+
+  <details>
+    <summary>答えを見る</summary>
+    <p class="ans">正解は <b>B</b>（Go to the library. ／ 図書館に行く）</p>
+  </details>
+</div>
+
+<audio id="audio" preload="auto" src="audio/listening-sample-01.mp3"></audio>
+
+<script>
+(function () {
+  // 各行の開始・終了（秒）。音声の作り方と合わせてある。
+  var T = {
+    "intro": [0.5, 5.087], "k1": [6.087, 8.625], "e1": [8.925, 10.675],
+    "k2": [10.975, 15.199], "e2": [15.499, 17.717], "k3": [18.017, 19.788],
+    "e3": [20.088, 21.368], "q": [22.868, 25.983], "ch": [26.483, 31.923]
+  };
+
+  // 英文は「単語|カタカナ」、日本語訳を jp に書く
+  var LINES = [
+    { id: "intro", who: "放送", en: [["Listen","リッスン"],["to","トゥ"],["the","ザ"],["talk","トーク"],["between","ビトウィーン"],["Ken","ケン"],["and","アンド"],["Emi.","エミ"],["Then","ゼン"],["answer","アンサー"],["the","ザ"],["question.","クエスチョン"]],
+      jp: "ケンとエミの会話を聞いて、質問に答えなさい。" },
+    { id: "k1", who: "Ken", en: [["Hi,","ハイ"],["Emi.","エミ"],["Are","アー"],["you","ユー"],["free","フリー"],["this","ディス"],["Saturday?","サタデイ"]],
+      jp: "やあ、エミ。今度の土曜日はひま？" },
+    { id: "e1", who: "Emi", en: [["Yes.","イエス"],["What","ワット"],["do","ドゥー"],["you","ユー"],["want","ワント"],["to","トゥ"],["do?","ドゥー"]],
+      jp: "うん。何がしたいの？" },
+    { id: "k2", who: "Ken", en: [["Let's","レッツ"],["go","ゴウ"],["to","トゥ"],["the","ザ"],["library","ライブラリー"],["together.","トゥゲザー"],["I","アイ"],["need","ニード"],["to","トゥ"],["borrow","ボロウ"],["some","サム"],["books.","ブックス"]],
+      jp: "いっしょに図書館に行こうよ。本を何冊か借りたいんだ。" },
+    { id: "e2", who: "Emi", en: [["Sounds","サウンズ"],["good!","グッド"],["What","ワット"],["time","タイム"],["shall","シャル"],["we","ウィー"],["meet?","ミート"]],
+      jp: "いいね！何時に待ち合わせる？" },
+    { id: "k3", who: "Ken", en: [["How","ハウ"],["about","アバウト"],["ten","テン"],["o'clock?","アクロック"]],
+      jp: "10時はどう？" },
+    { id: "e3", who: "Emi", en: [["Sure.","シュア"],["See","シー"],["you","ユー"],["then.","ゼン"]],
+      jp: "いいよ。じゃあそのときにね。" },
+    { id: "q", who: "Q", en: [["Question:","クエスチョン"],["What","ワット"],["will","ウィル"],["Ken","ケン"],["and","アンド"],["Emi","エミ"],["do","ドゥー"],["on","オン"],["Saturday?","サタデイ"]],
+      jp: "質問：ケンとエミは土曜日に何をしますか。" },
+    { id: "ch", who: "選択肢", choices: [
+        { k: "A", en: [["Go","ゴウ"],["shopping.","ショッピング"]], jp: "買い物に行く" },
+        { k: "B", en: [["Go","ゴウ"],["to","トゥ"],["the","ザ"],["library.","ライブラリー"]], jp: "図書館に行く" },
+        { k: "C", en: [["Play","プレイ"],["tennis.","テニス"]], jp: "テニスをする" },
+        { k: "D", en: [["Study","スタディ"],["at","アット"],["home.","ホーム"]], jp: "家で勉強する" }
+    ] }
+  ];
+
+  var audio = document.getElementById("audio");
+  var playBtn = document.getElementById("play");
+  var againBtn = document.getElementById("again");
+  var seek = document.getElementById("seek");
+  var timeEl = document.getElementById("time");
+  var twice = document.getElementById("twice");
+  var rateBtns = document.querySelectorAll("[data-rate]");
+  var pass = 0;          // 2回流すための回数
+  var curId = null;
+  var rows = {};
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]; }); }
+  function words(list) {
+    return list.map(function (w) { return "<ruby>" + esc(w[0]) + "<rt>" + esc(w[1]) + "</rt></ruby>"; }).join(" ");
+  }
+
+  var html = "";
+  LINES.forEach(function (L) {
+    if (L.choices) {
+      html += '<h2>選択肢</h2><div class="choices">';
+      L.choices.forEach(function (c) {
+        html += '<div class="line" data-id="ch" data-k="' + c.k + '"><span class="who">' + c.k + '</span>' +
+          '<div class="en">' + words(c.en) + '</div><div class="jp">' + esc(c.jp) + '</div></div>';
+      });
+      html += "</div>";
+      return;
+    }
+    var cls = L.who === "Emi" ? "Emi" : (L.who === "Q" ? "Q" : "");
+    html += '<div class="line" data-id="' + L.id + '"><span class="who ' + cls + '">' + esc(L.who) + '</span>' +
+      '<div class="en">' + words(L.en) + '</div><div class="jp">' + esc(L.jp) + '</div></div>';
+  });
+  document.getElementById("script").innerHTML = html;
+  // 選択肢は「ch」の1区間として扱う
+  document.querySelectorAll("[data-id]").forEach(function (el) {
+    var id = el.getAttribute("data-id");
+    (rows[id] = rows[id] || []).push(el);
+    el.addEventListener("click", function () { jumpTo(id); });
+  });
+
+  function fmt(s) {
+    if (!isFinite(s)) s = 0;
+    var m = Math.floor(s / 60), r = Math.floor(s % 60);
+    return m + ":" + (r < 10 ? "0" : "") + r;
+  }
+  function total() { return isFinite(audio.duration) ? audio.duration : 0; }
+
+  function jumpTo(id) {
+    pass = 0;
+    audio.currentTime = T[id][0];
+    audio.play();
+  }
+
+  function setPlaying(p) {
+    playBtn.textContent = p ? "⏸ 一時停止" : "▶ 再生";
+  }
+
+  function markLine() {
+    var now = audio.currentTime, hit = null;
+    Object.keys(T).forEach(function (id) {
+      if (now >= T[id][0] - 0.05 && now < T[id][1] + 0.4) hit = id;
+    });
+    if (hit === curId) return;
+    curId = hit;
+    Object.keys(rows).forEach(function (id) {
+      rows[id].forEach(function (el) {
+        var on = id === hit;
+        el.classList.toggle("on", on);
+        if (on && !audio.paused) el.scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+    });
+  }
+
+  playBtn.addEventListener("click", function () {
+    if (!audio.paused) { audio.pause(); return; }
+    if (audio.ended) { pass = 0; audio.currentTime = 0; }
+    audio.play();
+  });
+  againBtn.addEventListener("click", function () { jumpTo("intro"); });
+  seek.addEventListener("input", function () {
+    audio.currentTime = (Number(seek.value) / 100) * total();
+  });
+  rateBtns.forEach(function (b) {
+    b.addEventListener("click", function () {
+      audio.playbackRate = Number(b.getAttribute("data-rate"));
+      rateBtns.forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    });
+  });
+
+  audio.addEventListener("play", function () { setPlaying(true); });
+  audio.addEventListener("pause", function () { setPlaying(false); });
+  audio.addEventListener("loadedmetadata", function () { timeEl.textContent = "0:00 / " + fmt(total()); });
+  audio.addEventListener("timeupdate", function () {
+    markLine();
+    if (total() > 0) seek.value = String((audio.currentTime / total()) * 100);
+    timeEl.textContent = fmt(audio.currentTime) + " / " + fmt(total());
+  });
+  audio.addEventListener("ended", function () {
+    if (twice.checked && pass === 0) {
+      pass = 1;
+      audio.currentTime = 0;
+      audio.play();
+      return;
+    }
+    pass = 0;
+    setPlaying(false);
+    curId = null;
+    Object.keys(rows).forEach(function (id) { rows[id].forEach(function (el) { el.classList.remove("on"); }); });
+  });
+  audio.playbackRate = 1;
+})();
+</script>
+</body>
+</html>

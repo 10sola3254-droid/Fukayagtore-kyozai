@@ -180,6 +180,8 @@
     // (a) public/materials フォルダのPDF
     var path = url.replace(/^\.?\//, "").replace(/^public\//, "");
     if (path.indexOf("/") === -1) path = "materials/" + path;   // ファイル名だけでもOK
+    // HTMLで作った教材（音声つきの教材など）→ アプリの中で表示
+    if (/\.html?$/i.test(path)) return { type: "page", src: encodeURI(decodeURI(path)), open: encodeURI(decodeURI(path)) };
     return { type: "pdf", src: encodeURI(decodeURI(path)), open: encodeURI(decodeURI(path)) };
   }
 
@@ -410,6 +412,15 @@
         '<a class="tool-btn text" href="' + esc(m.open) + '" target="_blank" rel="noopener">ドライブで開く</a></div>' +
         '<div class="drive-wrap"><iframe class="drive-frame" src="' + esc(m.embed) + '" title="' + label +
         '" allow="autoplay; fullscreen" loading="eager"></iframe></div>';
+      sizeDriveFrame();
+      return;
+    }
+    if (m.type === "page") {
+      view.innerHTML =
+        '<div class="viewer-tools"><span class="viewer-title">' + label + "</span>" +
+        '<a class="tool-btn text" href="' + esc(m.open) + '" target="_blank" rel="noopener">別画面</a></div>' +
+        '<div class="drive-wrap"><iframe class="drive-frame" src="' + esc(m.src) + '" title="' + label +
+        '" allow="autoplay" loading="eager"></iframe></div>';
       sizeDriveFrame();
       return;
     }
