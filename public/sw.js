@@ -1,5 +1,5 @@
 /* ホーム画面アプリ用のしくみ（オフラインでも一度開いた教材は見られる） */
-var VERSION = "gtore-v1";
+var VERSION = "gtore-v2";
 var SHELL = [
   "./",
   "index.html",
@@ -11,7 +11,8 @@ var SHELL = [
   "icons/icon-512.png",
   "icons/apple-touch-icon.png",
   "vendor/pdfjs/pdf.min.js",
-  "vendor/pdfjs/pdf.worker.min.js"
+  "vendor/pdfjs/pdf.worker.min.js",
+  "vendor/qrcode/qrcode.js"
 ];
 
 self.addEventListener("install", function (e) {

@@ -324,7 +324,12 @@
         (empty ? '<span class="chip">準備中</span>' : units.length + '単元<span class="chev" aria-hidden="true">›</span>') +
         "</span></button></li>";
     });
-    html += "</ul>" + installCardHTML();
+    html += "</ul>" +
+      '<button type="button" class="qr-open-btn" id="qrOpenBtn">' +
+      '<span class="qr-open-icon" aria-hidden="true">' + QR_ICON_SVG + "</span>" +
+      '<span class="qr-open-text"><strong>QRコードを表示</strong>ほかの端末でも開けます</span>' +
+      '<span class="chev" aria-hidden="true">›</span></button>' +
+      installCardHTML();
     view.innerHTML = html;
     view.querySelectorAll(".subject-btn").forEach(function (b) {
       b.addEventListener("click", function () {
@@ -332,7 +337,80 @@
         go(b.getAttribute("data-s"));
       });
     });
+    document.getElementById("qrOpenBtn").addEventListener("click", openQrSheet);
     wireInstallCard();
+  }
+
+  /* ---------------- ほかの端末で開く（QRコード） ---------------- */
+  var QR_ICON_SVG = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">' +
+    '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>' +
+    '<path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3" stroke-linecap="round"/></svg>';
+
+  function appHomeURL() {
+    // 教科などの選択をふくまない、アプリのトップのURL
+    return location.origin + location.pathname.replace(/index\.html$/, "");
+  }
+
+  function qrSvg(text) {
+    if (typeof qrcode !== "function") return "";
+    var q = qrcode(0, "M");
+    q.addData(text);
+    q.make();
+    return q.createSvgTag({ cellSize: 1, margin: 2, scalable: true });
+  }
+
+  function openQrSheet() {
+    var old = document.getElementById("qrSheet");
+    if (old) old.remove();
+    var url = appHomeURL();
+    var svg = qrSvg(url);
+    var opener = document.activeElement;
+    var sheet = document.createElement("div");
+    sheet.className = "qr-sheet";
+    sheet.id = "qrSheet";
+    sheet.innerHTML =
+      '<div class="qr-panel" role="dialog" aria-modal="true" aria-labelledby="qrTitle">' +
+      '<button type="button" class="install-close qr-close" id="qrClose" aria-label="とじる">×</button>' +
+      '<h2 class="qr-title" id="qrTitle">ほかの端末で開く</h2>' +
+      '<p class="qr-lead">開きたいスマホ・タブレットのカメラで読みとってください。</p>' +
+      (svg ? '<div class="qr-code">' + svg + "</div>"
+           : '<p class="notice error">QRコードを作れませんでした。下のURLを使ってください。</p>') +
+      '<p class="qr-url">' + esc(url) + "</p>" +
+      '<button type="button" class="qr-copy" id="qrCopy">URLをコピー</button>' +
+      "</div>";
+    document.body.appendChild(sheet);
+    document.body.classList.add("has-sheet");
+
+    function close() {
+      document.removeEventListener("keydown", onKey);
+      sheet.remove();
+      document.body.classList.remove("has-sheet");
+      if (opener && opener.focus) opener.focus();
+    }
+    function onKey(e) { if (e.key === "Escape") close(); }
+    document.addEventListener("keydown", onKey);
+    sheet.addEventListener("click", function (e) { if (e.target === sheet) close(); });
+    document.getElementById("qrClose").addEventListener("click", close);
+
+    var copyBtn = document.getElementById("qrCopy");
+    copyBtn.addEventListener("click", function () {
+      var done = function () { copyBtn.textContent = "コピーしました ✓"; };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, function () { fallbackCopy(url); done(); });
+      } else { fallbackCopy(url); done(); }
+    });
+    document.getElementById("qrClose").focus();
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) {}
+    ta.remove();
   }
 
   function renderUnits(r, notice) {
