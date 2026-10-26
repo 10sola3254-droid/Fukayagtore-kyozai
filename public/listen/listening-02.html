@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>リスニング02 絵・応答を選ぶ（その2）</title>
+<style>
+:root { --blue:#1F4E79; --red:#C00000; --green:#2E7D32; --orange:#C07000; --ink:#1d1d1d; --bg:#fff; --soft:#f3f7fb; --now:#e3effb; --ev:#fff176; --card:#fff; --line:#cfd8e3; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --ink:#eee; --bg:#15191e; --soft:#1e2a36; --now:#1f3550; --ev:#8a7a12; --card:#1b2129; --line:#3a4654; --blue:#8fb8e0; --green:#7cc47f; --red:#ff8a80; }
+}
+:root[data-theme="dark"] { --ink:#eee; --bg:#15191e; --soft:#1e2a36; --now:#1f3550; --ev:#8a7a12; --card:#1b2129; --line:#3a4654; --blue:#8fb8e0; --green:#7cc47f; --red:#ff8a80; }
+* { box-sizing:border-box; }
+html, body { margin:0; padding:0; }
+body { background:var(--bg); color:var(--ink); font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif; line-height:1.6; -webkit-text-size-adjust:100%; }
+.wrap { max-width:720px; margin:0 auto; padding:12px 16px 48px; }
+h1 { font-size:20px; color:var(--blue); margin:8px 0 2px; }
+.sub { font-size:13px; opacity:.8; margin:0 0 10px; }
+.chip { display:inline-block; font-size:12px; color:#fff; background:#1F4E79; border-radius:4px; padding:1px 8px; margin-right:6px; }
+.howto { background:var(--soft); border-radius:8px; padding:8px 12px; font-size:14px; }
+.howto p { margin:2px 0; }
+.howto b { display:inline-block; width:20px; height:20px; line-height:20px; text-align:center; border-radius:50%; background:#1F4E79; color:#fff; font-size:12px; margin-right:4px; }
+.settings { position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--bg); border-bottom:1.5px solid var(--line); padding:8px 0; margin:8px 0 4px; }
+.opt { font-size:14px; display:flex; align-items:center; gap:6px; }
+.opt input { width:20px; height:20px; accent-color:#1F4E79; }
+button { font:inherit; cursor:pointer; color:inherit; }
+.btn { border:1.5px solid var(--blue); background:var(--card); color:var(--blue); border-radius:8px; padding:6px 12px; min-height:44px; min-width:44px; font-weight:700; }
+.btn.main { background:#1F4E79; border-color:#1F4E79; color:#fff; min-width:92px; }
+.btn[aria-pressed="true"] { background:#1F4E79; border-color:#1F4E79; color:#fff; }
+.btn:disabled { opacity:.4; cursor:default; }
+.sec { margin-top:22px; }
+h2 { font-size:17px; color:var(--blue); border-left:5px solid var(--blue); padding-left:8px; margin:0 0 4px; }
+.inst-en { margin:0; font-size:14px; }
+.inst { margin:0; font-size:14px; }
+.prob { border:1.5px solid var(--line); border-radius:12px; padding:10px 12px 12px; margin:14px 0; background:var(--card); }
+h3 { margin:0 0 6px; font-size:18px; color:var(--blue); }
+.player { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.seek { flex:1 1 120px; min-width:100px; accent-color:#1F4E79; }
+.time { font-size:13px; font-variant-numeric:tabular-nums; min-width:80px; text-align:right; }
+.play-now { font-size:12px; color:var(--orange); font-weight:700; }
+
+/* 選択肢 */
+.chs { margin:10px 0 6px; display:grid; gap:8px; }
+.chs.pic { grid-template-columns:repeat(2, 1fr); }
+@media (min-width:600px) { .chs.pic { grid-template-columns:repeat(4, 1fr); } }
+.ch { position:relative; border:2px solid var(--line); border-radius:10px; background:#fff; color:#1d1d1d; padding:22px 6px 6px; text-align:center; min-height:44px; }
+.ch.pic svg { width:100%; max-width:130px; height:auto; display:block; margin:0 auto; }
+.ch .k { position:absolute; left:6px; top:4px; font-weight:800; font-size:15px; border:1.5px solid #333; border-radius:4px; padding:0 6px; line-height:1.3; background:#fff; color:#1d1d1d; }
+.ch .cap { display:block; font-size:13px; line-height:1.3; margin-top:2px; }
+.chs.txt { grid-template-columns:1fr; }
+.ch.txt { text-align:left; padding:10px 10px 10px 44px; font-size:16px; }
+.ch.txt .k { top:50%; transform:translateY(-50%); left:10px; }
+.ch[aria-pressed="true"] { border-color:#1F4E79; box-shadow:0 0 0 3px #9cc3ea; }
+.ch.ok { border-color:#2E7D32; box-shadow:0 0 0 3px #a5d6a7; }
+.ch.ng { border-color:#C00000; box-shadow:0 0 0 3px #f5b5b5; }
+.checkrow { display:flex; align-items:center; gap:10px; margin-top:6px; }
+.result { font-weight:800; font-size:16px; }
+.result.ok { color:var(--green); }
+.result.ng { color:var(--red); }
+
+/* 台本・解説 */
+details.sc { margin-top:10px; border-top:1.5px dashed var(--line); padding-top:6px; }
+details.sc summary { color:var(--green); font-weight:700; cursor:pointer; min-height:40px; line-height:40px; }
+.expl { border:1.5px solid var(--orange); border-radius:8px; padding:6px 10px; margin:6px 0; }
+.expl .h { font-weight:700; color:var(--orange); }
+.expl .h b { color:var(--red); font-size:18px; }
+.expl ul { margin:4px 0; padding-left:20px; font-size:14px; }
+.expl b { color:var(--red); }
+.tip { font-size:14px; margin:4px 0 2px; }
+.chmean { border:1px solid var(--line); border-radius:8px; padding:6px 10px; margin:6px 0; font-size:14px; }
+.chmean .h { font-weight:700; color:var(--blue); }
+.chmean p { margin:4px 0; }
+.note { font-size:13px; color:var(--green); margin:6px 0; }
+.turn { border-left:4px solid transparent; border-radius:8px; padding:6px 8px; margin:4px 0; cursor:pointer; }
+.turn.now { background:var(--now); border-left-color:var(--blue); }
+.who { display:inline-block; font-size:12px; font-weight:700; color:#fff; border-radius:4px; padding:0 7px; background:#1F4E79; }
+.who.f { background:#8a4b9c; }
+.who.c { background:#2E7D32; }
+.who.narr { background:#555; }
+.who.q { background:#C07000; }
+.s { margin:2px 0 6px; }
+.en { font-size:17px; line-height:2.3; overflow-wrap:break-word; }
+.en ruby { ruby-position:over; white-space:nowrap; }
+.en rt { font-size:10px; color:var(--blue); letter-spacing:0; }
+mark.ev { background:var(--ev); color:inherit; border-radius:3px; padding:0 1px; }
+.jp { font-size:14px; line-height:1.5; }
+.voc { font-size:13px; line-height:1.5; color:var(--green); margin-top:2px; }
+.vl { display:inline-block; font-size:11px; font-weight:700; color:#fff; background:#2E7D32; border-radius:3px; padding:0 5px; margin-right:6px; }
+.score { text-align:center; margin-top:20px; }
+#score { font-size:17px; font-weight:800; color:var(--blue); }
+
+.voc.link { color:#8a4b9c; }
+.vl.snd { background:#8a4b9c; }
+.scene { border:2px solid var(--line); border-radius:10px; background:#fff; padding:6px; margin:10px 0 6px; }
+.scene svg { width:100%; height:auto; display:block; }
+.chs.txt.four { grid-template-columns:repeat(2, 1fr); }
+.chs.txt.four .ch.txt { padding:10px 10px 10px 44px; min-height:48px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="chip">リスニング</span><span class="chip">音声つき</span>
+  <h1>リスニング02 絵・応答を選ぶ（その2）</h1>
+  <p class="sub">北辰テスト 放送問題 No.1〜No.5 の型</p>
+  <div class="howto">
+    <p><b>1</b> 「▶ 聞く」で放送を聞き、答えを選ぶ（本番と同じく2回流れます）。</p>
+    <p><b>2</b> 「答え合わせ」を押す。</p>
+    <p><b>3</b> 「台本・解説を見る」で、英文（上にカタカナ・下に日本語と語句）を読みながら、もう一度聞く。</p>
+  </div>
+  <div class="settings">
+    <span class="opt">速さ</span>
+    <button type="button" class="btn rate" data-rate="0.8" aria-pressed="false">ゆっくり</button>
+    <button type="button" class="btn rate" data-rate="1" aria-pressed="true">ふつう</button>
+    <label class="opt"><input type="checkbox" id="twice" checked>本番どおり2回流す</label>
+  </div>
+<section class="sec"><h2>【No.1〜No.3】</h2><p class="inst-en">Listen to each talk and choose the best answer for each question.</p><p class="inst">会話を聞いて、質問の答えとして最も適するものを A〜D から1つずつ選びなさい。</p></section>
+<section class="prob" id="no1" data-p="0">
+  <h3>No.1</h3>
+  <div class="player" data-p="0">
+    <button type="button" class="btn main play" data-p="0">▶ 聞く</button>
+    <button type="button" class="btn again" data-p="0" aria-label="最初から">↺ 最初から</button>
+    <input type="range" class="seek" data-p="0" min="0" max="100" step="0.1" value="0" aria-label="再生位置">
+    <span class="time" data-p="0">0:00</span>
+  </div>
+  <div class="chs pic" data-p="0"><button type="button" class="ch pic" data-k="A"><span class="k">A</span><svg viewBox="0 0 120 110" role="img" aria-label="sandwich"><polygon points="15,85 60,25 105,85" fill="#f3d9a4" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><polygon points="22,82 60,33 98,82" fill="#8bc34a" stroke="none"/><polygon points="28,80 60,40 92,80" fill="#f9a825" stroke="none"/><polygon points="34,80 60,46 86,80" fill="#ef9a9a" stroke="none"/><polygon points="15,85 60,25 105,85" fill="none" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><rect x="15" y="85" width="90" height="6" fill="#f3d9a4" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg></button><button type="button" class="ch pic" data-k="B"><span class="k">B</span><svg viewBox="0 0 120 110" role="img" aria-label="juice"><rect x="38" y="30" width="44" height="60" rx="4" fill="#ffe082" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="M38 30 L46 15 L74 15 L82 30 Z" fill="#fff3c4" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="60" cy="60" r="12" fill="#ff9800" stroke="#333" stroke-width="2"/><line x1="76" y1="10" x2="86" y2="2" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg></button><button type="button" class="ch pic" data-k="C"><span class="k">C</span><svg viewBox="0 0 120 110" role="img" aria-label="apple"><path d="M60 35 C40 20 15 40 25 70 C32 90 48 98 60 92 C72 98 88 90 95 70 C105 40 80 20 60 35 Z" fill="#e53935" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="M60 35 L62 18" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="M62 24 C70 14 80 18 82 22 C72 28 66 28 62 24 Z" fill="#66bb6a" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg></button><button type="button" class="ch pic" data-k="D"><span class="k">D</span><svg viewBox="0 0 120 110" role="img" aria-label="cookies"><circle cx="42" cy="45" r="20" fill="#d7a86e" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="35" cy="40" r="3" fill="#5d4037"/><circle cx="48" cy="37" r="3" fill="#5d4037"/><circle cx="50" cy="51" r="3" fill="#5d4037"/><circle cx="38" cy="54" r="3" fill="#5d4037"/><circle cx="78" cy="65" r="20" fill="#d7a86e" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="71" cy="60" r="3" fill="#5d4037"/><circle cx="84" cy="57" r="3" fill="#5d4037"/><circle cx="86" cy="71" r="3" fill="#5d4037"/><circle cx="74" cy="74" r="3" fill="#5d4037"/></svg></button></div>
+  <div class="checkrow">
+    <button type="button" class="btn check" data-p="0" disabled>答え合わせ</button>
+    <span class="result" data-p="0" aria-live="polite"></span>
+  </div>
+  <details class="sc" data-p="0">
+    <summary>台本・解説を見る</summary>
+    <div class="expl"><div class="h">正解 <b>D</b></div><ul><li>サンドイッチとジュースは<b>ユミ</b>が持ってくる（A・B は×）。</li><li>ケンは最初 some apples（りんご）と言ったが、ユミが「りんごはたくさんある」と言った（C は×）。</li><li>最後にケンが OK. I'll bring some cookies.（じゃあクッキーを持っていくよ）と言っている → <b>クッキー</b>。</li></ul>
+      <p class="tip"><span class="vl">ポイント</span>「だれが・何を」持ってくるかを整理する。最初に言ったものが、あとで変わることが多い。</p></div>
+    
+    <p class="note">黄色の部分が答えの根拠です。行をタップすると、そこから流れます。緑の「音」は、2語以上でつながって聞こえるところです。</p>
+    <div class="script"><div class="turn" data-p="0" data-t="n"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>No.<rt>ナンバー</rt></ruby> <ruby>1<rt>ワン</rt></ruby></div></div></div><div class="turn" data-p="0" data-t="y1"><span class="who f">Yumi</span><div class="s"><div class="en"><ruby>Ken,<rt>ケン</rt></ruby> <ruby>let&#x27;s<rt>レッツ</rt></ruby> <ruby>have<rt>ハヴ</rt></ruby> <ruby>a<rt>ア</rt></ruby> <ruby>picnic<rt>ピクニック</rt></ruby> <ruby>in<rt>イン</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>park<rt>パーク</rt></ruby> <ruby>on<rt>オン</rt></ruby> <ruby>Saturday.<rt>サタデイ</rt></ruby></div><div class="jp">ケン、土曜日に公園でピクニックをしようよ。</div><div class="voc"><span class="vl">語句</span>have a picnic：ピクニックをする ／ on Saturday：土曜日に</div></div><div class="s"><div class="en"><ruby>I&#x27;ll<rt>アイル</rt></ruby> <ruby>bring<rt>ブリング</rt></ruby> <ruby>sandwiches<rt>サンドウィッチズ</rt></ruby> <ruby>and<rt>アンド</rt></ruby> <ruby>juice.<rt>ジュース</rt></ruby></div><div class="jp">わたしはサンドイッチとジュースを持っていくね。</div><div class="voc"><span class="vl">語句</span>I&#x27;ll ＝ I will：～するつもり ／ bring：持ってくる・持っていく</div></div></div><div class="turn" data-p="0" data-t="k1"><span class="who m">Ken</span><div class="s"><div class="en"><ruby>Sounds<rt>サウンズ</rt></ruby> <ruby>good!<rt>グッド</rt></ruby></div><div class="jp">いいね！</div><div class="voc"><span class="vl">語句</span>Sounds good!：いいね（相手の提案に賛成するとき）</div></div><div class="s"><div class="en"><ruby>Then<rt>ゼン</rt></ruby> <ruby>I&#x27;ll<rt>アイル</rt></ruby> <ruby>bring<rt>ブリング</rt></ruby> <ruby>some<rt>サム</rt></ruby> <ruby>apples.<rt>アプルズ</rt></ruby></div><div class="jp">じゃあ、ぼくはりんごを持っていくよ。</div><div class="voc"><span class="vl">語句</span>then：じゃあ、それなら ／ some：いくつかの</div></div></div><div class="turn" data-p="0" data-t="y2"><span class="who f">Yumi</span><div class="s"><div class="en"><mark class="ev"><ruby>Oh,<rt>オウ</rt></ruby> <ruby>we<rt>ウィー</rt></ruby> <ruby>have<rt>ハヴ</rt></ruby> <ruby>a<rt>ア</rt></ruby> <ruby>lot<rt>ロット</rt></ruby> <ruby>of<rt>オヴ</rt></ruby> <ruby>apples<rt>アプルズ</rt></ruby> <ruby>at<rt>アット</rt></ruby> <ruby>home.<rt>ホウム</rt></ruby></mark></div><div class="jp">あ、家にりんごがたくさんあるよ。</div><div class="voc"><span class="vl">語句</span>a lot of ～：たくさんの～ ／ at home：家に</div><div class="voc link"><span class="vl snd">音</span>a lot of → アロットヴ（3語がつながって聞こえる）</div></div><div class="s"><div class="en"><ruby>I&#x27;ll<rt>アイル</rt></ruby> <ruby>bring<rt>ブリング</rt></ruby> <ruby>them,<rt>ゼム</rt></ruby> <ruby>too.<rt>トゥー</rt></ruby></div><div class="jp">それも持っていくね。</div><div class="voc"><span class="vl">語句</span>them：それらを（＝apples）／ too：～も</div></div></div><div class="turn" data-p="0" data-t="k2"><span class="who m">Ken</span><div class="s"><div class="en"><ruby>OK.<rt>オウケイ</rt></ruby> <mark class="ev"><ruby>I&#x27;ll<rt>アイル</rt></ruby> <ruby>bring<rt>ブリング</rt></ruby> <ruby>some<rt>サム</rt></ruby> <ruby>cookies.<rt>クッキーズ</rt></ruby></mark></div><div class="jp">わかった。じゃあ、クッキーを持っていくよ。</div><div class="voc"><span class="vl">語句</span>cookie：クッキー</div></div><div class="s"><div class="en"><ruby>My<rt>マイ</rt></ruby> <ruby>mother<rt>マザー</rt></ruby> <ruby>makes<rt>メイクス</rt></ruby> <ruby>very<rt>ヴェリィ</rt></ruby> <ruby>good<rt>グッド</rt></ruby> <ruby>cookies.<rt>クッキーズ</rt></ruby></div><div class="jp">ぼくの母はとてもおいしいクッキーを作るんだ。</div><div class="voc"><span class="vl">語句</span>make：作る</div></div></div><div class="turn" data-p="0" data-t="q"><span class="who q">質問</span><div class="s"><div class="en"><ruby>Question:<rt>クエスチョン</rt></ruby> <ruby>What<rt>ワット</rt></ruby> <ruby>will<rt>ウィル</rt></ruby> <ruby>Ken<rt>ケン</rt></ruby> <ruby>bring<rt>ブリング</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>picnic?<rt>ピクニック</rt></ruby></div><div class="jp">質問：ケンはピクニックに何を持っていきますか。</div><div class="voc"><span class="vl">語句</span>What will ～?：～は何を…しますか</div></div></div></div>
+  </details>
+</section>
+<section class="prob" id="no2" data-p="1">
+  <h3>No.2</h3>
+  <div class="player" data-p="1">
+    <button type="button" class="btn main play" data-p="1">▶ 聞く</button>
+    <button type="button" class="btn again" data-p="1" aria-label="最初から">↺ 最初から</button>
+    <input type="range" class="seek" data-p="1" min="0" max="100" step="0.1" value="0" aria-label="再生位置">
+    <span class="time" data-p="1">0:00</span>
+  </div>
+  <div class="chs pic" data-p="1"><button type="button" class="ch pic" data-k="A"><span class="k">A</span><svg viewBox="0 0 120 110" role="img" aria-label="tennis"><ellipse cx="50" cy="40" rx="28" ry="34" fill="#fff" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="M30 25 h40 M30 40 h40 M30 55 h40 M40 10 v60 M50 8 v64 M60 10 v60" stroke="#999" stroke-width="1.5"/><line x1="66" y1="68" x2="92" y2="102" stroke="#333" stroke-width="8" stroke-linecap="round"/><circle cx="95" cy="30" r="10" fill="#cddc39" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg></button><button type="button" class="ch pic" data-k="B"><span class="k">B</span><svg viewBox="0 0 120 110" role="img" aria-label="swimming"><path d="M5 80 q15 -10 30 0 q15 10 30 0 q15 -10 30 0 q15 10 25 0" fill="none" stroke="#42a5f5" stroke-width="4"/><path d="M5 95 q15 -10 30 0 q15 10 30 0 q15 -10 30 0 q15 10 25 0" fill="none" stroke="#42a5f5" stroke-width="4"/><circle cx="30" cy="62" r="10" fill="#ffe0b2" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="M42 72 Q60 56 95 66" fill="none" stroke="#333" stroke-width="7" stroke-linecap="round"/><path d="M62 66 L50 40" fill="none" stroke="#333" stroke-width="7" stroke-linecap="round"/></svg></button><button type="button" class="ch pic" data-k="C"><span class="k">C</span><svg viewBox="0 0 120 110" role="img" aria-label="movie"><rect x="12" y="25" width="96" height="60" rx="4" fill="#333" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><rect x="18" y="31" width="84" height="48" fill="#90caf9"/><polygon points="52,42 52,68 74,55" fill="#fff" stroke="#333" stroke-width="2"/><rect x="40" y="85" width="40" height="8" fill="#333"/><rect x="30" y="93" width="60" height="6" fill="#333"/></svg></button><button type="button" class="ch pic" data-k="D"><span class="k">D</span><svg viewBox="0 0 120 110" role="img" aria-label="studying"><rect x="10" y="70" width="100" height="8" fill="#a1887f" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="60" cy="30" r="12" fill="#ffe0b2" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="M40 70 V52 q0 -10 10 -10 h20 q10 0 10 10 V70" fill="#42a5f5" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="M28 68 h30 l-4 -10 h-24 Z M58 68 h30 l4 -10 h-24 Z" fill="#fff" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><line x1="70" y1="48" x2="84" y2="60" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg></button></div>
+  <div class="checkrow">
+    <button type="button" class="btn check" data-p="1" disabled>答え合わせ</button>
+    <span class="result" data-p="1" aria-live="polite"></span>
+  </div>
+  <details class="sc" data-p="1">
+    <summary>台本・解説を見る</summary>
+    <div class="expl"><div class="h">正解 <b>B</b></div><ul><li>エミは最初テニスをしようと言ったが、トムが「明日は雨」と言った（A は×）。</li><li>トムが Let's go swimming at the new pool.（新しいプールに泳ぎに行こう）と言い、エミが Great!（いいね）と賛成している → <b>泳ぐ</b>。</li><li>映画（C）と勉強（D）は会話に出てこない。</li></ul>
+      <p class="tip"><span class="vl">ポイント</span>「天気」が理由で予定が変わる問題はよく出る。rain（雨）が聞こえたら、そのあとの提案に注意。</p></div>
+    
+    <p class="note">黄色の部分が答えの根拠です。行をタップすると、そこから流れます。緑の「音」は、2語以上でつながって聞こえるところです。</p>
+    <div class="script"><div class="turn" data-p="1" data-t="n"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>No.<rt>ナンバー</rt></ruby> <ruby>2<rt>トゥー</rt></ruby></div></div></div><div class="turn" data-p="1" data-t="e1"><span class="who f">Emi</span><div class="s"><div class="en"><ruby>Tom,<rt>トム</rt></ruby> <ruby>what<rt>ワット</rt></ruby> <ruby>are<rt>アー</rt></ruby> <ruby>you<rt>ユー</rt></ruby> <ruby>going<rt>ゴウイング</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>do<rt>ドゥ</rt></ruby> <ruby>tomorrow?<rt>トゥモロウ</rt></ruby></div><div class="jp">トム、明日は何をする予定？</div><div class="voc"><span class="vl">語句</span>be going to ～：～する予定だ ／ tomorrow：明日</div><div class="voc link"><span class="vl snd">音</span>going to → ゴウイントゥ（to は弱く短く）</div></div><div class="s"><div class="en"><ruby>Let&#x27;s<rt>レッツ</rt></ruby> <ruby>play<rt>プレイ</rt></ruby> <ruby>tennis<rt>テニス</rt></ruby> <ruby>in<rt>イン</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>park.<rt>パーク</rt></ruby></div><div class="jp">公園でテニスをしようよ。</div><div class="voc"><span class="vl">語句</span>play tennis：テニスをする</div></div></div><div class="turn" data-p="1" data-t="t1"><span class="who m">Tom</span><div class="s"><div class="en"><ruby>I&#x27;d<rt>アイド</rt></ruby> <ruby>like<rt>ライク</rt></ruby> <ruby>to,<rt>トゥ</rt></ruby> <ruby>but<rt>バット</rt></ruby> <mark class="ev"><ruby>it<rt>イット</rt></ruby> <ruby>will<rt>ウィル</rt></ruby> <ruby>rain<rt>レイン</rt></ruby> <ruby>tomorrow.<rt>トゥモロウ</rt></ruby></mark></div><div class="jp">そうしたいけど、明日は雨が降るよ。</div><div class="voc"><span class="vl">語句</span>I&#x27;d like to.：そうしたい ／ rain：雨が降る</div><div class="voc link"><span class="vl snd">音</span>I&#x27;d like to → アイド ライク トゥ</div></div><div class="s"><div class="en"><mark class="ev"><ruby>How<rt>ハウ</rt></ruby> <ruby>about<rt>アバウト</rt></ruby> <ruby>going<rt>ゴウイング</rt></ruby> <ruby>swimming<rt>スウィミング</rt></ruby> <ruby>at<rt>アット</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>new<rt>ニュー</rt></ruby> <ruby>pool?<rt>プール</rt></ruby></mark></div><div class="jp">新しいプールに泳ぎに行くのはどう？</div><div class="voc"><span class="vl">語句</span>How about ～ing?：～するのはどう？ ／ go swimming：泳ぎに行く ／ pool：プール</div></div></div><div class="turn" data-p="1" data-t="e2"><span class="who f">Emi</span><div class="s"><div class="en"><mark class="ev"><ruby>Great!<rt>グレイト</rt></ruby></mark> <ruby>I<rt>アイ</rt></ruby> <ruby>love<rt>ラヴ</rt></ruby> <ruby>swimming.<rt>スウィミング</rt></ruby></div><div class="jp">いいね！ わたしは泳ぐのが大好き。</div><div class="voc"><span class="vl">語句</span>love ～ing：～するのが大好き</div></div><div class="s"><div class="en"><ruby>What<rt>ワット</rt></ruby> <ruby>time<rt>タイム</rt></ruby> <ruby>shall<rt>シャル</rt></ruby> <ruby>we<rt>ウィー</rt></ruby> <ruby>meet?<rt>ミート</rt></ruby></div><div class="jp">何時に会おうか？</div><div class="voc"><span class="vl">語句</span>What time ～?：何時に～？ ／ Shall we ～?：～しましょうか</div></div></div><div class="turn" data-p="1" data-t="t2"><span class="who m">Tom</span><div class="s"><div class="en"><ruby>Let&#x27;s<rt>レッツ</rt></ruby> <ruby>meet<rt>ミート</rt></ruby> <ruby>at<rt>アット</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>station<rt>ステイション</rt></ruby> <ruby>at<rt>アット</rt></ruby> <ruby>ten.<rt>テン</rt></ruby></div><div class="jp">10時に駅で会おう。</div><div class="voc"><span class="vl">語句</span>meet：会う ／ station：駅 ／ at ten：10時に</div><div class="voc link"><span class="vl snd">音</span>meet at → ミータット（t と a がつながる）</div></div></div><div class="turn" data-p="1" data-t="q"><span class="who q">質問</span><div class="s"><div class="en"><ruby>Question:<rt>クエスチョン</rt></ruby> <ruby>What<rt>ワット</rt></ruby> <ruby>will<rt>ウィル</rt></ruby> <ruby>they<rt>ゼイ</rt></ruby> <ruby>do<rt>ドゥ</rt></ruby> <ruby>tomorrow?<rt>トゥモロウ</rt></ruby></div><div class="jp">質問：彼らは明日、何をしますか。</div></div></div></div>
+  </details>
+</section>
+<section class="prob" id="no3" data-p="2">
+  <h3>No.3</h3>
+  <div class="player" data-p="2">
+    <button type="button" class="btn main play" data-p="2">▶ 聞く</button>
+    <button type="button" class="btn again" data-p="2" aria-label="最初から">↺ 最初から</button>
+    <input type="range" class="seek" data-p="2" min="0" max="100" step="0.1" value="0" aria-label="再生位置">
+    <span class="time" data-p="2">0:00</span>
+  </div>
+  <div class="scene"><svg viewBox="0 0 320 240" role="img" aria-label="map"><rect x="0" y="0" width="320" height="240" fill="#fff"/><rect x="0" y="0" width="120" height="90" fill="#e0e0e0" stroke="#333" stroke-width="1.5"/><rect x="140" y="0" width="180" height="90" fill="#e0e0e0" stroke="#333" stroke-width="1.5"/><rect x="0" y="120" width="120" height="110" fill="#e0e0e0" stroke="#333" stroke-width="1.5"/><rect x="140" y="120" width="180" height="110" fill="#e0e0e0" stroke="#333" stroke-width="1.5"/><rect x="10" y="10" width="60" height="36" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="40.0" y="33.0" font-size="12" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">Station</text><rect x="50" y="48" width="60" height="36" fill="#fff" stroke="#333" stroke-width="1.5"/><rect x="150" y="10" width="60" height="36" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="180.0" y="33.0" font-size="12" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">Bank</text><rect x="220" y="10" width="60" height="36" fill="#fff" stroke="#333" stroke-width="1.5"/><rect x="150" y="130" width="60" height="36" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="180.0" y="153.0" font-size="12" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">Hospital</text><rect x="220" y="130" width="60" height="36" fill="#fff" stroke="#333" stroke-width="1.5"/><rect x="50" y="130" width="60" height="36" fill="#fff" stroke="#333" stroke-width="1.5"/><rect x="10" y="180" width="60" height="36" fill="#c8e6c9" stroke="#333" stroke-width="1.5"/><text x="40.0" y="203.0" font-size="12" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">Park</text><text x="130" y="213" font-size="18" text-anchor="middle" fill="#333">★</text><rect x="239" y="17" width="22" height="22" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="250" y="34" font-size="15" font-weight="bold" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">A</text><rect x="69" y="55" width="22" height="22" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="80" y="72" font-size="15" font-weight="bold" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">B</text><rect x="239" y="137" width="22" height="22" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="250" y="154" font-size="15" font-weight="bold" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">C</text><rect x="69" y="137" width="22" height="22" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="80" y="154" font-size="15" font-weight="bold" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">D</text><text x="130" y="238" font-size="10" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">You are here.</text><path d="M130 205 L130 150" stroke="#333" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/><polygon points="130,145 125,155 135,155" fill="#333"/></svg></div><div class="chs txt four" data-p="2"><button type="button" class="ch txt" data-k="A"><span class="k">A</span><span class="t"></span></button><button type="button" class="ch txt" data-k="B"><span class="k">B</span><span class="t"></span></button><button type="button" class="ch txt" data-k="C"><span class="k">C</span><span class="t"></span></button><button type="button" class="ch txt" data-k="D"><span class="k">D</span><span class="t"></span></button></div>
+  <div class="checkrow">
+    <button type="button" class="btn check" data-p="2" disabled>答え合わせ</button>
+    <span class="result" data-p="2" aria-live="polite"></span>
+  </div>
+  <details class="sc" data-p="2">
+    <summary>台本・解説を見る</summary>
+    <div class="expl"><div class="h">正解 <b>C</b></div><ul><li>★から矢印の向きにまっすぐ進むと、<b>右手</b>（on your right）に病院がある。</li><li>The bookstore is next to the hospital.（本屋は病院のとなり）→ 病院のとなりは <b>C</b>。</li><li>A は銀行のとなり。B・D は<b>左手</b>（left）なので×。</li></ul>
+      <p class="tip"><span class="vl">ポイント</span>地図の問題は、聞こえた順に指でたどる。go straight（まっすぐ）／ turn right（右に曲がる）／ next to（～のとなり）を覚えておく。</p></div>
+    
+    <p class="note">黄色の部分が答えの根拠です。行をタップすると、そこから流れます。緑の「音」は、2語以上でつながって聞こえるところです。</p>
+    <div class="script"><div class="turn" data-p="2" data-t="n"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>No.<rt>ナンバー</rt></ruby> <ruby>3<rt>スリー</rt></ruby></div></div></div><div class="turn" data-p="2" data-t="w1"><span class="who f">Woman</span><div class="s"><div class="en"><ruby>Excuse<rt>イクスキューズ</rt></ruby> <ruby>me.<rt>ミー</rt></ruby> <ruby>Is<rt>イズ</rt></ruby> <ruby>there<rt>ゼア</rt></ruby> <ruby>a<rt>ア</rt></ruby> <ruby>bookstore<rt>ブックストア</rt></ruby> <ruby>near<rt>ニア</rt></ruby> <ruby>here?<rt>ヒア</rt></ruby></div><div class="jp">すみません。この近くに本屋はありますか。</div><div class="voc"><span class="vl">語句</span>Excuse me.：すみません ／ Is there ～?：～はありますか ／ bookstore：本屋 ／ near here：この近くに</div><div class="voc link"><span class="vl snd">音</span>Is there a → イズ ゼア ラ（r と a がつながる）</div></div></div><div class="turn" data-p="2" data-t="m1"><span class="who m">Man</span><div class="s"><div class="en"><mark class="ev"><ruby>Yes.<rt>イエス</rt></ruby> <ruby>Go<rt>ゴウ</rt></ruby> <ruby>straight<rt>ストレイト</rt></ruby> <ruby>along<rt>アロング</rt></ruby> <ruby>this<rt>ズィス</rt></ruby> <ruby>street.<rt>ストリート</rt></ruby></mark></div><div class="jp">はい。この通りに沿ってまっすぐ行ってください。</div><div class="voc"><span class="vl">語句</span>go straight：まっすぐ行く ／ along ～：～に沿って ／ street：通り</div></div><div class="s"><div class="en"><mark class="ev"><ruby>You&#x27;ll<rt>ユール</rt></ruby> <ruby>see<rt>シー</rt></ruby> <ruby>a<rt>ア</rt></ruby> <ruby>hospital<rt>ハスピタル</rt></ruby> <ruby>on<rt>オン</rt></ruby> <ruby>your<rt>ユア</rt></ruby> <ruby>right.<rt>ライト</rt></ruby></mark></div><div class="jp">右手に病院が見えます。</div><div class="voc"><span class="vl">語句</span>You&#x27;ll ＝ You will ／ hospital：病院 ／ on your right：右手に</div><div class="voc link"><span class="vl snd">音</span>on your right → オンニョア ライト（n と y がつながる）</div></div><div class="s"><div class="en"><mark class="ev"><ruby>The<rt>ザ</rt></ruby> <ruby>bookstore<rt>ブックストア</rt></ruby> <ruby>is<rt>イズ</rt></ruby> <ruby>next<rt>ネクスト</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>hospital.<rt>ハスピタル</rt></ruby></mark></div><div class="jp">本屋は病院のとなりです。</div><div class="voc"><span class="vl">語句</span>next to ～：～のとなり</div></div></div><div class="turn" data-p="2" data-t="w2"><span class="who f">Woman</span><div class="s"><div class="en"><ruby>Next<rt>ネクスト</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>hospital.<rt>ハスピタル</rt></ruby> <ruby>Thank<rt>サンク</rt></ruby> <ruby>you<rt>ユー</rt></ruby> <ruby>very<rt>ヴェリィ</rt></ruby> <ruby>much.<rt>マッチ</rt></ruby></div><div class="jp">病院のとなりですね。どうもありがとうございます。</div></div></div><div class="turn" data-p="2" data-t="m2"><span class="who m">Man</span><div class="s"><div class="en"><ruby>You&#x27;re<rt>ユア</rt></ruby> <ruby>welcome.<rt>ウェルカム</rt></ruby></div><div class="jp">どういたしまして。</div><div class="voc"><span class="vl">語句</span>You&#x27;re welcome.：どういたしまして</div></div></div><div class="turn" data-p="2" data-t="q"><span class="who q">質問</span><div class="s"><div class="en"><ruby>Question:<rt>クエスチョン</rt></ruby> <ruby>Where<rt>ウェア</rt></ruby> <ruby>is<rt>イズ</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>bookstore?<rt>ブックストア</rt></ruby></div><div class="jp">質問：本屋はどこですか。</div></div></div></div>
+  </details>
+</section>
+<section class="sec"><h2>【No.4・No.5】</h2><p class="inst-en">Listen to each situation and choose the best answer for each question.</p><p class="inst">場面の説明を聞いて、質問の答えとして最も適するものを A〜D から1つずつ選びなさい。</p></section>
+<section class="prob" id="no4" data-p="3">
+  <h3>No.4</h3>
+  <div class="player" data-p="3">
+    <button type="button" class="btn main play" data-p="3">▶ 聞く</button>
+    <button type="button" class="btn again" data-p="3" aria-label="最初から">↺ 最初から</button>
+    <input type="range" class="seek" data-p="3" min="0" max="100" step="0.1" value="0" aria-label="再生位置">
+    <span class="time" data-p="3">0:00</span>
+  </div>
+  <div class="chs txt" data-p="3"><button type="button" class="ch txt" data-k="A"><span class="k">A</span><span class="t">I&#x27;d like to have a sandwich.</span></button><button type="button" class="ch txt" data-k="B"><span class="k">B</span><span class="t">Could I have some water, please?</span></button><button type="button" class="ch txt" data-k="C"><span class="k">C</span><span class="t">How much is this water?</span></button><button type="button" class="ch txt" data-k="D"><span class="k">D</span><span class="t">Where is the restaurant?</span></button></div>
+  <div class="checkrow">
+    <button type="button" class="btn check" data-p="3" disabled>答え合わせ</button>
+    <span class="result" data-p="3" aria-live="polite"></span>
+  </div>
+  <details class="sc" data-p="3">
+    <summary>台本・解説を見る</summary>
+    <div class="expl"><div class="h">正解 <b>B</b></div><ul><li>ユミは<b>のどがかわいている</b>（thirsty）が、テーブルに水がない。</li><li>→ 店員に「お水をください」とたのむ。<b>Could I have ～?</b>（～をいただけますか）。</li><li>A は食べ物をたのんでいるので×。C は値段を聞いている。D は、もうレストランの中にいるので×。</li></ul>
+      <p class="tip"><span class="vl">ポイント</span>No.4・5 は「～したい（want）」「～がない（no / doesn't have）」の部分が答えのヒント。</p></div>
+    <div class="chmean"><div class="h">選択肢の意味</div><p><b>A</b> I&#x27;d like to have a sandwich.<br><span class="jp">サンドイッチをください。</span></p><p><b>B</b> Could I have some water, please?<br><span class="jp">お水をいただけますか。</span></p><p><b>C</b> How much is this water?<br><span class="jp">この水はいくらですか。</span></p><p><b>D</b> Where is the restaurant?<br><span class="jp">レストランはどこですか。</span></p></div>
+    <p class="note">黄色の部分が答えの根拠です。行をタップすると、そこから流れます。緑の「音」は、2語以上でつながって聞こえるところです。</p>
+    <div class="script"><div class="turn" data-p="3" data-t="n"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>No.<rt>ナンバー</rt></ruby> <ruby>4<rt>フォー</rt></ruby></div></div></div><div class="turn" data-p="3" data-t="s1"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>Yumi<rt>ユミ</rt></ruby> <ruby>is<rt>イズ</rt></ruby> <ruby>at<rt>アット</rt></ruby> <ruby>a<rt>ア</rt></ruby> <ruby>restaurant<rt>レストラント</rt></ruby> <ruby>with<rt>ウィズ</rt></ruby> <ruby>her<rt>ハー</rt></ruby> <ruby>family.<rt>ファミリィ</rt></ruby></div><div class="jp">ユミは家族とレストランにいます。</div><div class="voc"><span class="vl">語句</span>restaurant：レストラン ／ with her family：家族と</div><div class="voc link"><span class="vl snd">音</span>at a → アタ（t と a がつながる）</div></div><div class="s"><div class="en"><mark class="ev"><ruby>She<rt>シー</rt></ruby> <ruby>is<rt>イズ</rt></ruby> <ruby>very<rt>ヴェリィ</rt></ruby> <ruby>thirsty,<rt>サースティ</rt></ruby> <ruby>but<rt>バット</rt></ruby> <ruby>there<rt>ゼア</rt></ruby> <ruby>is<rt>イズ</rt></ruby> <ruby>no<rt>ナンバー</rt></ruby> <ruby>water<rt>ウォーター</rt></ruby> <ruby>on<rt>オン</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>table.<rt>テイブル</rt></ruby></mark></div><div class="jp">彼女はとてものどがかわいていますが、テーブルの上に水がありません。</div><div class="voc"><span class="vl">語句</span>thirsty：のどがかわいた ／ there is no ～：～がない</div></div><div class="s"><div class="en"><ruby>A<rt>ア</rt></ruby> <ruby>waiter<rt>ウェイター</rt></ruby> <ruby>comes<rt>カムズ</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>her<rt>ハー</rt></ruby> <ruby>table.<rt>テイブル</rt></ruby></div><div class="jp">ウエイターが彼女のテーブルに来ます。</div><div class="voc"><span class="vl">語句</span>waiter：ウエイター（店員）</div></div></div><div class="turn" data-p="3" data-t="q"><span class="who q">質問</span><div class="s"><div class="en"><ruby>Question:<rt>クエスチョン</rt></ruby> <ruby>What<rt>ワット</rt></ruby> <ruby>will<rt>ウィル</rt></ruby> <ruby>Yumi<rt>ユミ</rt></ruby> <ruby>say<rt>セイ</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>waiter?<rt>ウェイター</rt></ruby></div><div class="jp">質問：ユミはウエイターに何と言いますか。</div><div class="voc"><span class="vl">語句</span>say to 人：人に言う</div></div></div></div>
+  </details>
+</section>
+<section class="prob" id="no5" data-p="4">
+  <h3>No.5</h3>
+  <div class="player" data-p="4">
+    <button type="button" class="btn main play" data-p="4">▶ 聞く</button>
+    <button type="button" class="btn again" data-p="4" aria-label="最初から">↺ 最初から</button>
+    <input type="range" class="seek" data-p="4" min="0" max="100" step="0.1" value="0" aria-label="再生位置">
+    <span class="time" data-p="4">0:00</span>
+  </div>
+  <div class="chs txt" data-p="4"><button type="button" class="ch txt" data-k="A"><span class="k">A</span><span class="t">Sorry, I don&#x27;t know this town.</span></button><button type="button" class="ch txt" data-k="B"><span class="k">B</span><span class="t">You should take a taxi.</span></button><button type="button" class="ch txt" data-k="C"><span class="k">C</span><span class="t">I&#x27;m going there, too. Let&#x27;s go together.</span></button><button type="button" class="ch txt" data-k="D"><span class="k">D</span><span class="t">The station is closed today.</span></button></div>
+  <div class="checkrow">
+    <button type="button" class="btn check" data-p="4" disabled>答え合わせ</button>
+    <span class="result" data-p="4" aria-live="polite"></span>
+  </div>
+  <details class="sc" data-p="4">
+    <summary>台本・解説を見る</summary>
+    <div class="expl"><div class="h">正解 <b>C</b></div><ul><li>アヤは<b>駅へ行く途中</b>で、マイクも<b>同じ駅</b>に行きたい。</li><li>→ 「わたしも行くところだから、いっしょに行こう」が自然。<b>Let's go together.</b>（いっしょに行こう）。</li><li>A はアヤがこの町に住んでいるので×。B・D は場面に合わない。</li></ul>
+      <p class="tip"><span class="vl">ポイント</span>「同じ場所に行く」「同じものがほしい」という場面では、too（～も）や together（いっしょに）が答えになりやすい。</p></div>
+    <div class="chmean"><div class="h">選択肢の意味</div><p><b>A</b> Sorry, I don&#x27;t know this town.<br><span class="jp">ごめんなさい、この町を知りません。</span></p><p><b>B</b> You should take a taxi.<br><span class="jp">タクシーに乗ったほうがいいですよ。</span></p><p><b>C</b> I&#x27;m going there, too. Let&#x27;s go together.<br><span class="jp">わたしもそこに行くところです。いっしょに行きましょう。</span></p><p><b>D</b> The station is closed today.<br><span class="jp">駅は今日は閉まっています。</span></p></div>
+    <p class="note">黄色の部分が答えの根拠です。行をタップすると、そこから流れます。緑の「音」は、2語以上でつながって聞こえるところです。</p>
+    <div class="script"><div class="turn" data-p="4" data-t="n"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>No.<rt>ナンバー</rt></ruby> <ruby>5<rt>ファイヴ</rt></ruby></div></div></div><div class="turn" data-p="4" data-t="s1"><span class="who narr">放送</span><div class="s"><div class="en"><mark class="ev"><ruby>Aya<rt>アヤ</rt></ruby> <ruby>is<rt>イズ</rt></ruby> <ruby>walking<rt>ウォーキング</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>station.<rt>ステイション</rt></ruby></mark></div><div class="jp">アヤは駅へ歩いているところです。</div><div class="voc"><span class="vl">語句</span>walk to ～：～へ歩いていく</div></div><div class="s"><div class="en"><mark class="ev"><ruby>A<rt>ア</rt></ruby> <ruby>man,<rt>マン</rt></ruby> <ruby>Mike,<rt>マイク</rt></ruby> <ruby>asks<rt>アスクス</rt></ruby> <ruby>her<rt>ハー</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>way<rt>ウェイ</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>station.<rt>ステイション</rt></ruby></mark></div><div class="jp">ある男の人、マイクが、彼女に駅への道をたずねます。</div><div class="voc"><span class="vl">語句</span>ask 人 the way to ～：人に～への道をたずねる</div></div><div class="s"><div class="en"><ruby>He<rt>ヒー</rt></ruby> <ruby>is<rt>イズ</rt></ruby> <ruby>new<rt>ニュー</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>this<rt>ズィス</rt></ruby> <ruby>town.<rt>タウン</rt></ruby></div><div class="jp">彼はこの町に来たばかりです。</div><div class="voc"><span class="vl">語句</span>be new to ～：～に来たばかり、～に慣れていない</div></div></div><div class="turn" data-p="4" data-t="q"><span class="who q">質問</span><div class="s"><div class="en"><ruby>Question:<rt>クエスチョン</rt></ruby> <ruby>What<rt>ワット</rt></ruby> <ruby>will<rt>ウィル</rt></ruby> <ruby>Aya<rt>アヤ</rt></ruby> <ruby>say<rt>セイ</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>Mike?<rt>マイク</rt></ruby></div><div class="jp">質問：アヤはマイクに何と言いますか。</div></div></div></div>
+  </details>
+</section>
+  <section class="score">
+    <p id="score">答え合わせ：0／5問</p>
+    <button type="button" class="btn" id="reset">もう一度ちょうせん</button>
+  </section>
+</div>
+<audio id="audio" preload="none"></audio>
+<script>var P = [{"no": 1, "answer": "D", "audio": "audio/listening-02-no1.mp3", "times": {"n": [0.5, 1.652], "y1": [2.002, 6.994], "k1": [7.344, 9.919], "y2": [10.269, 13.319], "k2": [13.669, 17.696], "q": [18.696, 21.299]}}, {"no": 2, "answer": "B", "audio": "audio/listening-02-no2.mp3", "times": {"n": [0.5, 1.673], "e1": [2.023, 6.013], "t1": [6.363, 11.107], "e2": [11.457, 14.166], "t2": [14.516, 16.415], "q": [17.415, 19.719]}}, {"no": 3, "answer": "C", "audio": "audio/listening-02-no3.mp3", "times": {"n": [0.5, 1.631], "w1": [1.981, 4.349], "m1": [4.699, 11.184], "w2": [11.534, 13.945], "m2": [14.295, 15.318], "q": [16.318, 18.323]}}, {"no": 4, "answer": "B", "audio": "audio/listening-02-no4.mp3", "times": {"n": [0.5, 1.695], "s1": [2.045, 10.237], "q": [11.237, 13.839]}}, {"no": 5, "answer": "C", "audio": "audio/listening-02-no5.mp3", "times": {"n": [0.5, 1.759], "s1": [2.109, 8.85], "q": [9.85, 12.154]}}];
+(function () {
+  var audio = document.getElementById("audio");
+  var twice = document.getElementById("twice");
+  var RATE = 1;
+  var cur = -1;        // 再生中の問題
+  var pass = 0;        // 2回流すための回数
+  var pendingSeek = null;
+  var chosen = {}, checked = {};
+
+  function $all(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function q(sel, i) { return document.querySelector(sel + '[data-p="' + i + '"]'); }
+  function fmt(s) { if (!isFinite(s) || s < 0) s = 0; var m = Math.floor(s / 60), r = Math.floor(s % 60); return m + ":" + (r < 10 ? "0" : "") + r; }
+  function total() { return isFinite(audio.duration) ? audio.duration : 0; }
+
+  function setBtn(i, playing) {
+    var b = q(".play", i);
+    if (b) b.textContent = playing ? "⏸ 止める" : "▶ 聞く";
+  }
+  function clearNow() { $all(".turn.now").forEach(function (el) { el.classList.remove("now"); }); }
+
+  function load(i) {
+    if (cur === i) return;
+    if (cur >= 0) { setBtn(cur, false); }
+    clearNow();
+    cur = i; pass = 0;
+    audio.src = P[i].audio;
+    audio.load();
+  }
+  function start(i, t) {
+    var fresh = cur !== i;
+    load(i);
+    if (fresh) pendingSeek = t || 0;
+    else audio.currentTime = t || 0;
+    audio.playbackRate = RATE;
+    var pr = audio.play();
+    if (pr && pr.catch) pr.catch(function () {});
+  }
+
+  audio.addEventListener("loadedmetadata", function () {
+    if (pendingSeek) { try { audio.currentTime = pendingSeek; } catch (e) {} }
+    pendingSeek = null;
+    audio.playbackRate = RATE;
+  });
+  audio.addEventListener("play", function () { audio.playbackRate = RATE; setBtn(cur, true); });
+  audio.addEventListener("pause", function () { setBtn(cur, false); });
+  audio.addEventListener("timeupdate", function () {
+    if (cur < 0) return;
+    var now = audio.currentTime, d = total();
+    var tm = q(".time", cur), sk = q(".seek", cur);
+    if (tm) tm.textContent = (pass ? "2回目 " : "") + fmt(now) + " / " + fmt(d);
+    if (sk && d) sk.value = String(now / d * 100);
+    var T = P[cur].times, hit = null;
+    Object.keys(T).forEach(function (id) { if (now >= T[id][0] - 0.05 && now < T[id][1] + 0.3) hit = id; });
+    $all('.turn[data-p="' + cur + '"]').forEach(function (el) {
+      var on = el.getAttribute("data-t") === hit;
+      if (on && !el.classList.contains("now")) {
+        el.classList.add("now");
+        var d2 = el.closest("details");
+        if (d2 && d2.open && !audio.paused) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      } else if (!on) el.classList.remove("now");
+    });
+  });
+  audio.addEventListener("ended", function () {
+    if (twice.checked && pass === 0) {
+      pass = 1; audio.currentTime = 0; audio.play(); return;
+    }
+    pass = 0; setBtn(cur, false); clearNow();
+  });
+
+  $all(".play").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var i = Number(b.getAttribute("data-p"));
+      if (cur === i && !audio.paused) { audio.pause(); return; }
+      if (cur === i && !audio.ended && audio.currentTime > 0) { audio.play(); return; }
+      if (cur === i) pass = 0;
+      start(i, 0);
+    });
+  });
+  $all(".again").forEach(function (b) {
+    b.addEventListener("click", function () { var i = Number(b.getAttribute("data-p")); if (cur === i) pass = 0; start(i, 0); });
+  });
+  $all(".seek").forEach(function (s) {
+    s.addEventListener("input", function () {
+      var i = Number(s.getAttribute("data-p"));
+      if (cur !== i) { start(i, 0); return; }
+      if (total()) audio.currentTime = Number(s.value) / 100 * total();
+    });
+  });
+  $all(".turn").forEach(function (el) {
+    el.addEventListener("click", function () {
+      var i = Number(el.getAttribute("data-p"));
+      var t = P[i].times[el.getAttribute("data-t")];
+      if (cur === i) pass = 0;
+      start(i, t ? t[0] : 0);
+    });
+  });
+  $all(".rate").forEach(function (b) {
+    b.addEventListener("click", function () {
+      RATE = Number(b.getAttribute("data-rate"));
+      audio.playbackRate = RATE;
+      $all(".rate").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    });
+  });
+
+  // 選択肢と答え合わせ
+  $all(".chs").forEach(function (box) {
+    var i = Number(box.getAttribute("data-p"));
+    box.querySelectorAll(".ch").forEach(function (c) {
+      c.setAttribute("aria-pressed", "false");
+      c.addEventListener("click", function () {
+        if (checked[i]) return;
+        chosen[i] = c.getAttribute("data-k");
+        box.querySelectorAll(".ch").forEach(function (x) { x.setAttribute("aria-pressed", x === c ? "true" : "false"); });
+        q(".check", i).disabled = false;
+      });
+    });
+  });
+  function updateScore() {
+    var n = 0, ok = 0;
+    Object.keys(checked).forEach(function (i) { n++; if (checked[i] === "ok") ok++; });
+    document.getElementById("score").textContent = "答え合わせ：" + n + "／" + P.length + "問　正解：" + ok + "問";
+  }
+  $all(".check").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var i = Number(b.getAttribute("data-p"));
+      if (!chosen[i] || checked[i]) return;
+      var ans = P[i].answer, good = chosen[i] === ans;
+      checked[i] = good ? "ok" : "ng";
+      var r = q(".result", i);
+      r.textContent = good ? "○ 正解！" : "× 正解は " + ans;
+      r.className = "result " + (good ? "ok" : "ng");
+      q(".chs", i).querySelectorAll(".ch").forEach(function (x) {
+        var k = x.getAttribute("data-k");
+        if (k === ans) x.classList.add("ok");
+        else if (k === chosen[i]) x.classList.add("ng");
+      });
+      b.disabled = true;
+      q("details.sc", i).open = true;
+      updateScore();
+    });
+  });
+  document.getElementById("reset").addEventListener("click", function () {
+    chosen = {}; checked = {};
+    $all(".ch").forEach(function (x) { x.setAttribute("aria-pressed", "false"); x.classList.remove("ok"); x.classList.remove("ng"); });
+    $all(".result").forEach(function (r) { r.textContent = ""; r.className = "result"; });
+    $all(".check").forEach(function (b) { b.disabled = true; });
+    $all("details.sc").forEach(function (d) { d.open = false; });
+    audio.pause(); updateScore();
+    window.scrollTo(0, 0);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>リスニング07 絵・応答を選ぶ（その7）</title>
+<style>
+:root { --blue:#1F4E79; --red:#C00000; --green:#2E7D32; --orange:#C07000; --ink:#1d1d1d; --bg:#fff; --soft:#f3f7fb; --now:#e3effb; --ev:#fff176; --card:#fff; --line:#cfd8e3; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --ink:#eee; --bg:#15191e; --soft:#1e2a36; --now:#1f3550; --ev:#8a7a12; --card:#1b2129; --line:#3a4654; --blue:#8fb8e0; --green:#7cc47f; --red:#ff8a80; }
+}
+:root[data-theme="dark"] { --ink:#eee; --bg:#15191e; --soft:#1e2a36; --now:#1f3550; --ev:#8a7a12; --card:#1b2129; --line:#3a4654; --blue:#8fb8e0; --green:#7cc47f; --red:#ff8a80; }
+* { box-sizing:border-box; }
+html, body { margin:0; padding:0; }
+body { background:var(--bg); color:var(--ink); font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif; line-height:1.6; -webkit-text-size-adjust:100%; }
+.wrap { max-width:720px; margin:0 auto; padding:12px 16px 48px; }
+h1 { font-size:20px; color:var(--blue); margin:8px 0 2px; }
+.sub { font-size:13px; opacity:.8; margin:0 0 10px; }
+.chip { display:inline-block; font-size:12px; color:#fff; background:#1F4E79; border-radius:4px; padding:1px 8px; margin-right:6px; }
+.howto { background:var(--soft); border-radius:8px; padding:8px 12px; font-size:14px; }
+.howto p { margin:2px 0; }
+.howto b { display:inline-block; width:20px; height:20px; line-height:20px; text-align:center; border-radius:50%; background:#1F4E79; color:#fff; font-size:12px; margin-right:4px; }
+.settings { position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:var(--bg); border-bottom:1.5px solid var(--line); padding:8px 0; margin:8px 0 4px; }
+.opt { font-size:14px; display:flex; align-items:center; gap:6px; }
+.opt input { width:20px; height:20px; accent-color:#1F4E79; }
+button { font:inherit; cursor:pointer; color:inherit; }
+.btn { border:1.5px solid var(--blue); background:var(--card); color:var(--blue); border-radius:8px; padding:6px 12px; min-height:44px; min-width:44px; font-weight:700; }
+.btn.main { background:#1F4E79; border-color:#1F4E79; color:#fff; min-width:92px; }
+.btn[aria-pressed="true"] { background:#1F4E79; border-color:#1F4E79; color:#fff; }
+.btn:disabled { opacity:.4; cursor:default; }
+.sec { margin-top:22px; }
+h2 { font-size:17px; color:var(--blue); border-left:5px solid var(--blue); padding-left:8px; margin:0 0 4px; }
+.inst-en { margin:0; font-size:14px; }
+.inst { margin:0; font-size:14px; }
+.prob { border:1.5px solid var(--line); border-radius:12px; padding:10px 12px 12px; margin:14px 0; background:var(--card); }
+h3 { margin:0 0 6px; font-size:18px; color:var(--blue); }
+.player { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.seek { flex:1 1 120px; min-width:100px; accent-color:#1F4E79; }
+.time { font-size:13px; font-variant-numeric:tabular-nums; min-width:80px; text-align:right; }
+.play-now { font-size:12px; color:var(--orange); font-weight:700; }
+
+/* 選択肢 */
+.chs { margin:10px 0 6px; display:grid; gap:8px; }
+.chs.pic { grid-template-columns:repeat(2, 1fr); }
+@media (min-width:600px) { .chs.pic { grid-template-columns:repeat(4, 1fr); } }
+.ch { position:relative; border:2px solid var(--line); border-radius:10px; background:#fff; color:#1d1d1d; padding:22px 6px 6px; text-align:center; min-height:44px; }
+.ch.pic svg { width:100%; max-width:130px; height:auto; display:block; margin:0 auto; }
+.ch .k { position:absolute; left:6px; top:4px; font-weight:800; font-size:15px; border:1.5px solid #333; border-radius:4px; padding:0 6px; line-height:1.3; background:#fff; color:#1d1d1d; }
+.ch .cap { display:block; font-size:13px; line-height:1.3; margin-top:2px; }
+.chs.txt { grid-template-columns:1fr; }
+.ch.txt { text-align:left; padding:10px 10px 10px 44px; font-size:16px; }
+.ch.txt .k { top:50%; transform:translateY(-50%); left:10px; }
+.ch[aria-pressed="true"] { border-color:#1F4E79; box-shadow:0 0 0 3px #9cc3ea; }
+.ch.ok { border-color:#2E7D32; box-shadow:0 0 0 3px #a5d6a7; }
+.ch.ng { border-color:#C00000; box-shadow:0 0 0 3px #f5b5b5; }
+.checkrow { display:flex; align-items:center; gap:10px; margin-top:6px; }
+.result { font-weight:800; font-size:16px; }
+.result.ok { color:var(--green); }
+.result.ng { color:var(--red); }
+
+/* 台本・解説 */
+details.sc { margin-top:10px; border-top:1.5px dashed var(--line); padding-top:6px; }
+details.sc summary { color:var(--green); font-weight:700; cursor:pointer; min-height:40px; line-height:40px; }
+.expl { border:1.5px solid var(--orange); border-radius:8px; padding:6px 10px; margin:6px 0; }
+.expl .h { font-weight:700; color:var(--orange); }
+.expl .h b { color:var(--red); font-size:18px; }
+.expl ul { margin:4px 0; padding-left:20px; font-size:14px; }
+.expl b { color:var(--red); }
+.tip { font-size:14px; margin:4px 0 2px; }
+.chmean { border:1px solid var(--line); border-radius:8px; padding:6px 10px; margin:6px 0; font-size:14px; }
+.chmean .h { font-weight:700; color:var(--blue); }
+.chmean p { margin:4px 0; }
+.note { font-size:13px; color:var(--green); margin:6px 0; }
+.turn { border-left:4px solid transparent; border-radius:8px; padding:6px 8px; margin:4px 0; cursor:pointer; }
+.turn.now { background:var(--now); border-left-color:var(--blue); }
+.who { display:inline-block; font-size:12px; font-weight:700; color:#fff; border-radius:4px; padding:0 7px; background:#1F4E79; }
+.who.f { background:#8a4b9c; }
+.who.c { background:#2E7D32; }
+.who.narr { background:#555; }
+.who.q { background:#C07000; }
+.s { margin:2px 0 6px; }
+.en { font-size:17px; line-height:2.3; overflow-wrap:break-word; }
+.en ruby { ruby-position:over; white-space:nowrap; }
+.en rt { font-size:10px; color:var(--blue); letter-spacing:0; }
+mark.ev { background:var(--ev); color:inherit; border-radius:3px; padding:0 1px; }
+.jp { font-size:14px; line-height:1.5; }
+.voc { font-size:13px; line-height:1.5; color:var(--green); margin-top:2px; }
+.vl { display:inline-block; font-size:11px; font-weight:700; color:#fff; background:#2E7D32; border-radius:3px; padding:0 5px; margin-right:6px; }
+.score { text-align:center; margin-top:20px; }
+#score { font-size:17px; font-weight:800; color:var(--blue); }
+
+.voc.link { color:#8a4b9c; }
+.vl.snd { background:#8a4b9c; }
+.scene { border:2px solid var(--line); border-radius:10px; background:#fff; padding:6px; margin:10px 0 6px; }
+.scene svg { width:100%; height:auto; display:block; }
+.chs.txt.four { grid-template-columns:repeat(2, 1fr); }
+.chs.txt.four .ch.txt { padding:10px 10px 10px 44px; min-height:48px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="chip">リスニング</span><span class="chip">音声つき</span>
+  <h1>リスニング07 絵・応答を選ぶ（その7）</h1>
+  <p class="sub">北辰テスト 放送問題 No.1〜No.5 の型</p>
+  <div class="howto">
+    <p><b>1</b> 「▶ 聞く」で放送を聞き、答えを選ぶ（本番と同じく2回流れます）。</p>
+    <p><b>2</b> 「答え合わせ」を押す。</p>
+    <p><b>3</b> 「台本・解説を見る」で、英文（上にカタカナ・下に日本語と語句）を読みながら、もう一度聞く。</p>
+  </div>
+  <div class="settings">
+    <span class="opt">速さ</span>
+    <button type="button" class="btn rate" data-rate="0.8" aria-pressed="false">ゆっくり</button>
+    <button type="button" class="btn rate" data-rate="1" aria-pressed="true">ふつう</button>
+    <label class="opt"><input type="checkbox" id="twice" checked>本番どおり2回流す</label>
+  </div>
+<section class="sec"><h2>【No.1〜No.3】</h2><p class="inst-en">Listen to each talk and choose the best answer for each question.</p><p class="inst">会話を聞いて、質問の答えとして最も適するものを A〜D から1つずつ選びなさい。</p></section>
+<section class="prob" id="no1" data-p="0">
+  <h3>No.1</h3>
+  <div class="player" data-p="0">
+    <button type="button" class="btn main play" data-p="0">▶ 聞く</button>
+    <button type="button" class="btn again" data-p="0" aria-label="最初から">↺ 最初から</button>
+    <input type="range" class="seek" data-p="0" min="0" max="100" step="0.1" value="0" aria-label="再生位置">
+    <span class="time" data-p="0">0:00</span>
+  </div>
+  <div class="chs pic" data-p="0"><button type="button" class="ch pic" data-k="A"><span class="k">A</span><svg viewBox="0 0 120 110" role="img" aria-label="watch"><rect x="44" y="5" width="32" height="100" rx="6" fill="#455a64" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="60" cy="55" r="28" fill="#fff" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><line x1="60" y1="55" x2="60" y2="35" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><line x1="60" y1="55" x2="74" y2="55" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg></button><button type="button" class="ch pic" data-k="B"><span class="k">B</span><svg viewBox="0 0 120 110" role="img" aria-label="bike"><circle cx="28" cy="78" r="20" fill="none" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="92" cy="78" r="20" fill="none" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="M28 78 L50 45 L80 45 L92 78 M50 45 L62 78 L28 78 M80 45 L72 30 L82 30 M50 45 L44 32 L36 32" fill="none" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg></button><button type="button" class="ch pic" data-k="C"><span class="k">C</span><svg viewBox="0 0 120 110" role="img" aria-label="video game"><rect x="10" y="35" width="100" height="45" rx="14" fill="#616161" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><rect x="20" y="42" width="30" height="30" rx="4" fill="#fff" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><line x1="35" y1="47" x2="35" y2="67" stroke="#333" stroke-width="6"/><line x1="25" y1="57" x2="45" y2="57" stroke="#333" stroke-width="6"/><circle cx="80" cy="50" r="5" fill="#ef5350"/><circle cx="94" cy="58" r="5" fill="#42a5f5"/><circle cx="80" cy="66" r="5" fill="#66bb6a"/><circle cx="66" cy="58" r="5" fill="#ffeb3b"/></svg></button><button type="button" class="ch pic" data-k="D"><span class="k">D</span><svg viewBox="0 0 120 110" role="img" aria-label="book"><path d="M18 20 h40 q8 0 8 8 v70 q-4 -6 -8 -6 h-40 Z" fill="#42a5f5" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><path d="M102 20 h-40 q-8 0 -8 8 v70 q4 -6 8 -6 h40 Z" fill="#fff" stroke="#333" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><line x1="66" y1="34" x2="92" y2="34" stroke="#999" stroke-width="2"/><line x1="66" y1="44" x2="92" y2="44" stroke="#999" stroke-width="2"/><line x1="66" y1="54" x2="92" y2="54" stroke="#999" stroke-width="2"/></svg></button></div>
+  <div class="checkrow">
+    <button type="button" class="btn check" data-p="0" disabled>答え合わせ</button>
+    <span class="result" data-p="0" aria-live="polite"></span>
+  </div>
+  <details class="sc" data-p="0">
+    <summary>台本・解説を見る</summary>
+    <div class="expl"><div class="h">正解 <b>D</b></div><ul><li>時計（A）は<b>去年</b>もらった。自転車（B）はほしかったが「高すぎる」ともらえなかった。</li><li>タロウが My father gave me a book about space.（父が宇宙の本をくれた）と言っている → <b>本</b>。</li><li>ゲーム（C）は会話に出てこない。</li></ul>
+      <p class="tip"><span class="vl">ポイント</span>「ほしかったもの（wanted）」と「もらったもの（gave / got）」はちがう。gave me ～ の文が答え。</p></div>
+    
+    <p class="note">黄色の部分が答えの根拠です。行をタップすると、そこから流れます。緑の「音」は、2語以上でつながって聞こえるところです。</p>
+    <div class="script"><div class="turn" data-p="0" data-t="n"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>No.<rt>ナンバー</rt></ruby> <ruby>1<rt>ワン</rt></ruby></div></div></div><div class="turn" data-p="0" data-t="n1"><span class="who f">Nancy</span><div class="s"><div class="en"><ruby>Taro,<rt>タロウ</rt></ruby> <ruby>happy<rt>ハッピィ</rt></ruby> <ruby>birthday!<rt>バースデイ</rt></ruby> <ruby>What<rt>ワット</rt></ruby> <ruby>did<rt>ディッド</rt></ruby> <ruby>you<rt>ユー</rt></ruby> <ruby>get?<rt>ゲット</rt></ruby></div><div class="jp">タロウ、誕生日おめでとう！ 何をもらったの？</div><div class="voc"><span class="vl">語句</span>get：もらう（got：過去形）</div><div class="voc link"><span class="vl snd">音</span>What did you → ワッディジュ（d と y がつながる）</div></div></div><div class="turn" data-p="0" data-t="t1"><span class="who m">Taro</span><div class="s"><div class="en"><ruby>Thank<rt>サンク</rt></ruby> <ruby>you,<rt>ユー</rt></ruby> <ruby>Nancy.<rt>ナンシィ</rt></ruby> <ruby>I<rt>アイ</rt></ruby> <ruby>wanted<rt>ワンティッド</rt></ruby> <ruby>a<rt>ア</rt></ruby> <ruby>new<rt>ニュー</rt></ruby> <ruby>bike.<rt>バイク</rt></ruby></div><div class="jp">ありがとう、ナンシー。ぼくは新しい自転車がほしかったんだ。</div><div class="voc"><span class="vl">語句</span>wanted：want（ほしい）の過去形</div></div><div class="s"><div class="en"><mark class="ev"><ruby>But<rt>バット</rt></ruby> <ruby>my<rt>マイ</rt></ruby> <ruby>parents<rt>ペアレンツ</rt></ruby> <ruby>said<rt>セッド</rt></ruby> <ruby>it<rt>イット</rt></ruby> <ruby>was<rt>ワズ</rt></ruby> <ruby>too<rt>トゥー</rt></ruby> <ruby>expensive.<rt>イクスペンスィヴ</rt></ruby></mark></div><div class="jp">でも、両親が高すぎるって言ったんだ。</div><div class="voc"><span class="vl">語句</span>parents：両親 ／ expensive：（値段が）高い</div><div class="voc link"><span class="vl snd">音</span>said it was → セディットワズ（3語がつながる）</div></div></div><div class="turn" data-p="0" data-t="n2"><span class="who f">Nancy</span><div class="s"><div class="en"><mark class="ev"><ruby>That&#x27;s<rt>ザッツ</rt></ruby> <ruby>too<rt>トゥー</rt></ruby> <ruby>bad.<rt>バッド</rt></ruby> <ruby>You<rt>ユー</rt></ruby> <ruby>got<rt>ガット</rt></ruby> <ruby>a<rt>ア</rt></ruby> <ruby>watch<rt>ワッチ</rt></ruby> <ruby>last<rt>ラスト</rt></ruby> <ruby>year,<rt>イヤー</rt></ruby> <ruby>right?<rt>ライト</rt></ruby></mark></div><div class="jp">残念だったね。去年は時計をもらったんだよね？</div><div class="voc"><span class="vl">語句</span>last year：去年</div></div></div><div class="turn" data-p="0" data-t="t2"><span class="who m">Taro</span><div class="s"><div class="en"><ruby>Yes.<rt>イエス</rt></ruby> <ruby>This<rt>ズィス</rt></ruby> <ruby>year,<rt>イヤー</rt></ruby> <mark class="ev"><ruby>my<rt>マイ</rt></ruby> <ruby>father<rt>ファーザー</rt></ruby> <ruby>gave<rt>ゲイヴ</rt></ruby> <ruby>me<rt>ミー</rt></ruby> <ruby>a<rt>ア</rt></ruby> <ruby>book<rt>ブック</rt></ruby> <ruby>about<rt>アバウト</rt></ruby> <ruby>space.<rt>スペイス</rt></ruby></mark></div><div class="jp">うん。今年は、父が宇宙についての本をくれたよ。</div><div class="voc"><span class="vl">語句</span>gave me ～：わたしに～をくれた ／ space：宇宙</div><div class="voc link"><span class="vl snd">音</span>gave me a → ゲイヴミア</div></div><div class="s"><div class="en"><ruby>I<rt>アイ</rt></ruby> <ruby>like<rt>ライク</rt></ruby> <ruby>it<rt>イット</rt></ruby> <ruby>very<rt>ヴェリィ</rt></ruby> <ruby>much.<rt>マッチ</rt></ruby></div><div class="jp">とても気に入っているよ。</div></div></div><div class="turn" data-p="0" data-t="q"><span class="who q">質問</span><div class="s"><div class="en"><ruby>Question:<rt>クエスチョン</rt></ruby> <ruby>What<rt>ワット</rt></ruby> <ruby>did<rt>ディッド</rt></ruby> <ruby>Taro<rt>タロウ</rt></ruby> <ruby>get<rt>ゲット</rt></ruby> <ruby>for<rt>フォー</rt></ruby> <ruby>his<rt>ヒズ</rt></ruby> <ruby>birthday?<rt>バースデイ</rt></ruby></div><div class="jp">質問：タロウは誕生日に何をもらいましたか。</div></div></div></div>
+  </details>
+</section>
+<section class="prob" id="no2" data-p="1">
+  <h3>No.2</h3>
+  <div class="player" data-p="1">
+    <button type="button" class="btn main play" data-p="1">▶ 聞く</button>
+    <button type="button" class="btn again" data-p="1" aria-label="最初から">↺ 最初から</button>
+    <input type="range" class="seek" data-p="1" min="0" max="100" step="0.1" value="0" aria-label="再生位置">
+    <span class="time" data-p="1">0:00</span>
+  </div>
+  <div class="chs pic" data-p="1"><button type="button" class="ch pic" data-k="A"><span class="k">A</span><svg viewBox="0 0 120 120" role="img" aria-label="clock 6:00"><circle cx="60" cy="60" r="52" fill="#fff" stroke="#333" stroke-width="3"/><line x1="60.0" y1="18.0" x2="60.0" y2="11.0" stroke="#333" stroke-width="2.4"/><text x="60.0" y="30.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">12</text><line x1="81.0" y1="23.6" x2="84.5" y2="17.6" stroke="#333" stroke-width="2.4"/><text x="77.0" y="34.6" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">1</text><line x1="96.4" y1="39.0" x2="102.4" y2="35.5" stroke="#333" stroke-width="2.4"/><text x="89.4" y="47.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">2</text><line x1="102.0" y1="60.0" x2="109.0" y2="60.0" stroke="#333" stroke-width="2.4"/><text x="94.0" y="64.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">3</text><line x1="96.4" y1="81.0" x2="102.4" y2="84.5" stroke="#333" stroke-width="2.4"/><text x="89.4" y="81.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">4</text><line x1="81.0" y1="96.4" x2="84.5" y2="102.4" stroke="#333" stroke-width="2.4"/><text x="77.0" y="93.4" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">5</text><line x1="60.0" y1="102.0" x2="60.0" y2="109.0" stroke="#333" stroke-width="2.4"/><text x="60.0" y="98.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">6</text><line x1="39.0" y1="96.4" x2="35.5" y2="102.4" stroke="#333" stroke-width="2.4"/><text x="43.0" y="93.4" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">7</text><line x1="23.6" y1="81.0" x2="17.6" y2="84.5" stroke="#333" stroke-width="2.4"/><text x="30.6" y="81.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">8</text><line x1="18.0" y1="60.0" x2="11.0" y2="60.0" stroke="#333" stroke-width="2.4"/><text x="26.0" y="64.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">9</text><line x1="23.6" y1="39.0" x2="17.6" y2="35.5" stroke="#333" stroke-width="2.4"/><text x="30.6" y="47.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">10</text><line x1="39.0" y1="23.6" x2="35.5" y2="17.6" stroke="#333" stroke-width="2.4"/><text x="43.0" y="34.6" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">11</text><line x1="60" y1="60" x2="60.0" y2="84.0" stroke="#222" stroke-width="5" stroke-linecap="round"/><line x1="60" y1="60" x2="60.0" y2="22.0" stroke="#222" stroke-width="3" stroke-linecap="round"/><circle cx="60" cy="60" r="3.5" fill="#222"/></svg></button><button type="button" class="ch pic" data-k="B"><span class="k">B</span><svg viewBox="0 0 120 120" role="img" aria-label="clock 6:30"><circle cx="60" cy="60" r="52" fill="#fff" stroke="#333" stroke-width="3"/><line x1="60.0" y1="18.0" x2="60.0" y2="11.0" stroke="#333" stroke-width="2.4"/><text x="60.0" y="30.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">12</text><line x1="81.0" y1="23.6" x2="84.5" y2="17.6" stroke="#333" stroke-width="2.4"/><text x="77.0" y="34.6" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">1</text><line x1="96.4" y1="39.0" x2="102.4" y2="35.5" stroke="#333" stroke-width="2.4"/><text x="89.4" y="47.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">2</text><line x1="102.0" y1="60.0" x2="109.0" y2="60.0" stroke="#333" stroke-width="2.4"/><text x="94.0" y="64.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">3</text><line x1="96.4" y1="81.0" x2="102.4" y2="84.5" stroke="#333" stroke-width="2.4"/><text x="89.4" y="81.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">4</text><line x1="81.0" y1="96.4" x2="84.5" y2="102.4" stroke="#333" stroke-width="2.4"/><text x="77.0" y="93.4" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">5</text><line x1="60.0" y1="102.0" x2="60.0" y2="109.0" stroke="#333" stroke-width="2.4"/><text x="60.0" y="98.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">6</text><line x1="39.0" y1="96.4" x2="35.5" y2="102.4" stroke="#333" stroke-width="2.4"/><text x="43.0" y="93.4" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">7</text><line x1="23.6" y1="81.0" x2="17.6" y2="84.5" stroke="#333" stroke-width="2.4"/><text x="30.6" y="81.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">8</text><line x1="18.0" y1="60.0" x2="11.0" y2="60.0" stroke="#333" stroke-width="2.4"/><text x="26.0" y="64.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">9</text><line x1="23.6" y1="39.0" x2="17.6" y2="35.5" stroke="#333" stroke-width="2.4"/><text x="30.6" y="47.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">10</text><line x1="39.0" y1="23.6" x2="35.5" y2="17.6" stroke="#333" stroke-width="2.4"/><text x="43.0" y="34.6" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">11</text><line x1="60" y1="60" x2="53.8" y2="83.2" stroke="#222" stroke-width="5" stroke-linecap="round"/><line x1="60" y1="60" x2="60.0" y2="98.0" stroke="#222" stroke-width="3" stroke-linecap="round"/><circle cx="60" cy="60" r="3.5" fill="#222"/></svg></button><button type="button" class="ch pic" data-k="C"><span class="k">C</span><svg viewBox="0 0 120 120" role="img" aria-label="clock 7:00"><circle cx="60" cy="60" r="52" fill="#fff" stroke="#333" stroke-width="3"/><line x1="60.0" y1="18.0" x2="60.0" y2="11.0" stroke="#333" stroke-width="2.4"/><text x="60.0" y="30.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">12</text><line x1="81.0" y1="23.6" x2="84.5" y2="17.6" stroke="#333" stroke-width="2.4"/><text x="77.0" y="34.6" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">1</text><line x1="96.4" y1="39.0" x2="102.4" y2="35.5" stroke="#333" stroke-width="2.4"/><text x="89.4" y="47.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">2</text><line x1="102.0" y1="60.0" x2="109.0" y2="60.0" stroke="#333" stroke-width="2.4"/><text x="94.0" y="64.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">3</text><line x1="96.4" y1="81.0" x2="102.4" y2="84.5" stroke="#333" stroke-width="2.4"/><text x="89.4" y="81.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">4</text><line x1="81.0" y1="96.4" x2="84.5" y2="102.4" stroke="#333" stroke-width="2.4"/><text x="77.0" y="93.4" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">5</text><line x1="60.0" y1="102.0" x2="60.0" y2="109.0" stroke="#333" stroke-width="2.4"/><text x="60.0" y="98.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">6</text><line x1="39.0" y1="96.4" x2="35.5" y2="102.4" stroke="#333" stroke-width="2.4"/><text x="43.0" y="93.4" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">7</text><line x1="23.6" y1="81.0" x2="17.6" y2="84.5" stroke="#333" stroke-width="2.4"/><text x="30.6" y="81.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">8</text><line x1="18.0" y1="60.0" x2="11.0" y2="60.0" stroke="#333" stroke-width="2.4"/><text x="26.0" y="64.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">9</text><line x1="23.6" y1="39.0" x2="17.6" y2="35.5" stroke="#333" stroke-width="2.4"/><text x="30.6" y="47.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">10</text><line x1="39.0" y1="23.6" x2="35.5" y2="17.6" stroke="#333" stroke-width="2.4"/><text x="43.0" y="34.6" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">11</text><line x1="60" y1="60" x2="48.0" y2="80.8" stroke="#222" stroke-width="5" stroke-linecap="round"/><line x1="60" y1="60" x2="60.0" y2="22.0" stroke="#222" stroke-width="3" stroke-linecap="round"/><circle cx="60" cy="60" r="3.5" fill="#222"/></svg></button><button type="button" class="ch pic" data-k="D"><span class="k">D</span><svg viewBox="0 0 120 120" role="img" aria-label="clock 7:30"><circle cx="60" cy="60" r="52" fill="#fff" stroke="#333" stroke-width="3"/><line x1="60.0" y1="18.0" x2="60.0" y2="11.0" stroke="#333" stroke-width="2.4"/><text x="60.0" y="30.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">12</text><line x1="81.0" y1="23.6" x2="84.5" y2="17.6" stroke="#333" stroke-width="2.4"/><text x="77.0" y="34.6" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">1</text><line x1="96.4" y1="39.0" x2="102.4" y2="35.5" stroke="#333" stroke-width="2.4"/><text x="89.4" y="47.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">2</text><line x1="102.0" y1="60.0" x2="109.0" y2="60.0" stroke="#333" stroke-width="2.4"/><text x="94.0" y="64.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">3</text><line x1="96.4" y1="81.0" x2="102.4" y2="84.5" stroke="#333" stroke-width="2.4"/><text x="89.4" y="81.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">4</text><line x1="81.0" y1="96.4" x2="84.5" y2="102.4" stroke="#333" stroke-width="2.4"/><text x="77.0" y="93.4" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">5</text><line x1="60.0" y1="102.0" x2="60.0" y2="109.0" stroke="#333" stroke-width="2.4"/><text x="60.0" y="98.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">6</text><line x1="39.0" y1="96.4" x2="35.5" y2="102.4" stroke="#333" stroke-width="2.4"/><text x="43.0" y="93.4" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">7</text><line x1="23.6" y1="81.0" x2="17.6" y2="84.5" stroke="#333" stroke-width="2.4"/><text x="30.6" y="81.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">8</text><line x1="18.0" y1="60.0" x2="11.0" y2="60.0" stroke="#333" stroke-width="2.4"/><text x="26.0" y="64.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">9</text><line x1="23.6" y1="39.0" x2="17.6" y2="35.5" stroke="#333" stroke-width="2.4"/><text x="30.6" y="47.0" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">10</text><line x1="39.0" y1="23.6" x2="35.5" y2="17.6" stroke="#333" stroke-width="2.4"/><text x="43.0" y="34.6" font-size="11" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">11</text><line x1="60" y1="60" x2="43.0" y2="77.0" stroke="#222" stroke-width="5" stroke-linecap="round"/><line x1="60" y1="60" x2="60.0" y2="98.0" stroke="#222" stroke-width="3" stroke-linecap="round"/><circle cx="60" cy="60" r="3.5" fill="#222"/></svg></button></div>
+  <div class="checkrow">
+    <button type="button" class="btn check" data-p="1" disabled>答え合わせ</button>
+    <span class="result" data-p="1" aria-live="polite"></span>
+  </div>
+  <details class="sc" data-p="1">
+    <summary>台本・解説を見る</summary>
+    <div class="expl"><div class="h">正解 <b>B</b></div><ul><li>ナナはふだん<b>7時</b>に起きる（C はふだんの時刻）。</li><li>明日は「電車が7時半に出る」→ お母さんが「<b>6時半</b>に起きなさい」と言い、ナナが OK. と答えた → <b>B</b>。</li><li>7時半（D）は電車の時刻。</li></ul>
+      <p class="tip"><span class="vl">ポイント</span>usually（ふだん）と tomorrow（明日）を区別する。質問は「明日」なので、変わったあとの時刻を選ぶ。</p></div>
+    
+    <p class="note">黄色の部分が答えの根拠です。行をタップすると、そこから流れます。緑の「音」は、2語以上でつながって聞こえるところです。</p>
+    <div class="script"><div class="turn" data-p="1" data-t="n"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>No.<rt>ナンバー</rt></ruby> <ruby>2<rt>トゥー</rt></ruby></div></div></div><div class="turn" data-p="1" data-t="m1"><span class="who f">Mother</span><div class="s"><div class="en"><ruby>Nana,<rt>ナナ</rt></ruby> <ruby>what<rt>ワット</rt></ruby> <ruby>time<rt>タイム</rt></ruby> <ruby>do<rt>ドゥ</rt></ruby> <ruby>you<rt>ユー</rt></ruby> <ruby>usually<rt>ユージュアリィ</rt></ruby> <ruby>get<rt>ゲット</rt></ruby> <ruby>up?<rt>アップ</rt></ruby></div><div class="jp">ナナ、ふだん何時に起きるの？</div><div class="voc"><span class="vl">語句</span>usually：ふだん、たいてい ／ get up：起きる</div><div class="voc link"><span class="vl snd">音</span>get up → ゲラップ（t と u がつながる）</div></div></div><div class="turn" data-p="1" data-t="n1"><span class="who f2">Nana</span><div class="s"><div class="en"><mark class="ev"><ruby>At<rt>アット</rt></ruby> <ruby>seven.<rt>セヴン</rt></ruby></mark> <ruby>Why?<rt>ワイ</rt></ruby></div><div class="jp">7時だよ。どうして？</div></div></div><div class="turn" data-p="1" data-t="m2"><span class="who f">Mother</span><div class="s"><div class="en"><mark class="ev"><ruby>Tomorrow,<rt>トゥモロウ</rt></ruby> <ruby>your<rt>ユア</rt></ruby> <ruby>train<rt>トレイン</rt></ruby> <ruby>leaves<rt>リーヴズ</rt></ruby> <ruby>at<rt>アット</rt></ruby> <ruby>seven<rt>セヴン</rt></ruby> <ruby>thirty.<rt>サーティ</rt></ruby></mark></div><div class="jp">明日は、電車が7時30分に出るでしょ。</div><div class="voc"><span class="vl">語句</span>leave：出発する</div><div class="voc link"><span class="vl snd">音</span>leaves at → リーヴザット</div></div><div class="s"><div class="en"><mark class="ev"><ruby>You<rt>ユー</rt></ruby> <ruby>should<rt>シュッド</rt></ruby> <ruby>get<rt>ゲット</rt></ruby> <ruby>up<rt>アップ</rt></ruby> <ruby>at<rt>アット</rt></ruby> <ruby>six<rt>スィックス</rt></ruby> <ruby>thirty.<rt>サーティ</rt></ruby></mark></div><div class="jp">6時30分に起きたほうがいいよ。</div><div class="voc"><span class="vl">語句</span>should：～したほうがいい ／ six thirty：6時30分</div></div></div><div class="turn" data-p="1" data-t="n2"><span class="who f2">Nana</span><div class="s"><div class="en"><mark class="ev"><ruby>OK,<rt>オウケイ</rt></ruby> <ruby>Mom.<rt>マム</rt></ruby></mark> <ruby>I&#x27;ll<rt>アイル</rt></ruby> <ruby>go<rt>ゴウ</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>bed<rt>ベッド</rt></ruby> <ruby>early<rt>アーリィ</rt></ruby> <ruby>tonight.<rt>トゥナイト</rt></ruby></div><div class="jp">わかった、お母さん。今夜は早く寝るね。</div><div class="voc"><span class="vl">語句</span>go to bed：寝る ／ early：早く ／ tonight：今夜</div></div></div><div class="turn" data-p="1" data-t="q"><span class="who q">質問</span><div class="s"><div class="en"><ruby>Question:<rt>クエスチョン</rt></ruby> <ruby>What<rt>ワット</rt></ruby> <ruby>time<rt>タイム</rt></ruby> <ruby>will<rt>ウィル</rt></ruby> <ruby>Nana<rt>ナナ</rt></ruby> <ruby>get<rt>ゲット</rt></ruby> <ruby>up<rt>アップ</rt></ruby> <ruby>tomorrow?<rt>トゥモロウ</rt></ruby></div><div class="jp">質問：ナナは明日、何時に起きますか。</div></div></div></div>
+  </details>
+</section>
+<section class="prob" id="no3" data-p="2">
+  <h3>No.3</h3>
+  <div class="player" data-p="2">
+    <button type="button" class="btn main play" data-p="2">▶ 聞く</button>
+    <button type="button" class="btn again" data-p="2" aria-label="最初から">↺ 最初から</button>
+    <input type="range" class="seek" data-p="2" min="0" max="100" step="0.1" value="0" aria-label="再生位置">
+    <span class="time" data-p="2">0:00</span>
+  </div>
+  <div class="scene"><svg viewBox="0 0 320 320" role="img" aria-label="map"><rect x="0" y="0" width="320" height="320" fill="#fff"/><rect x="0" y="0" width="130" height="80" fill="#e0e0e0" stroke="#333" stroke-width="1.5"/><rect x="160" y="0" width="160" height="80" fill="#e0e0e0" stroke="#333" stroke-width="1.5"/><rect x="0" y="110" width="130" height="80" fill="#e0e0e0" stroke="#333" stroke-width="1.5"/><rect x="160" y="110" width="160" height="80" fill="#e0e0e0" stroke="#333" stroke-width="1.5"/><rect x="0" y="220" width="130" height="80" fill="#e0e0e0" stroke="#333" stroke-width="1.5"/><rect x="160" y="220" width="160" height="80" fill="#e0e0e0" stroke="#333" stroke-width="1.5"/><rect x="10" y="20" width="60" height="40" fill="#fff" stroke="#333" stroke-width="1.5"/><rect x="170" y="20" width="70" height="40" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="205.0" y="45.0" font-size="12" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">Hotel</text><rect x="70" y="120" width="50" height="40" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="95.0" y="145.0" font-size="12" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">Bank</text><rect x="10" y="130" width="50" height="40" fill="#fff" stroke="#333" stroke-width="1.5"/><rect x="170" y="120" width="70" height="50" fill="#c8e6c9" stroke="#333" stroke-width="1.5"/><text x="205.0" y="150.0" font-size="12" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">Park</text><rect x="250" y="130" width="60" height="40" fill="#fff" stroke="#333" stroke-width="1.5"/><rect x="10" y="240" width="60" height="40" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="40.0" y="258.0" font-size="12" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">Flower</text><text x="40.0" y="272.0" font-size="12" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">Shop</text><rect x="80" y="240" width="40" height="40" fill="#fff" stroke="#333" stroke-width="1.5"/><rect x="170" y="240" width="60" height="40" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="145" y="290" font-size="18" text-anchor="middle" fill="#333">★</text><rect x="29" y="29" width="22" height="22" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="40" y="46" font-size="15" font-weight="bold" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">B</text><rect x="24" y="139" width="22" height="22" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="35" y="156" font-size="15" font-weight="bold" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">A</text><rect x="269" y="139" width="22" height="22" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="280" y="156" font-size="15" font-weight="bold" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">D</text><rect x="89" y="249" width="22" height="22" fill="#fff" stroke="#333" stroke-width="1.5"/><text x="100" y="266" font-size="15" font-weight="bold" text-anchor="middle" fill="#1d1d1d" font-family="Arial,sans-serif">C</text><path d="M145 275 L145 110" stroke="#333" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/><polygon points="145,100 140,112 150,112" fill="#333"/><text x="175" y="200" font-size="9" fill="#333" font-family="Arial,sans-serif">1st corner</text><text x="175" y="90" font-size="9" fill="#333" font-family="Arial,sans-serif">2nd corner</text><text x="145" y="314" font-size="10" text-anchor="middle" fill="#333" font-family="Arial,sans-serif">You are here.</text></svg></div><div class="chs txt four" data-p="2"><button type="button" class="ch txt" data-k="A"><span class="k">A</span><span class="t"></span></button><button type="button" class="ch txt" data-k="B"><span class="k">B</span><span class="t"></span></button><button type="button" class="ch txt" data-k="C"><span class="k">C</span><span class="t"></span></button><button type="button" class="ch txt" data-k="D"><span class="k">D</span><span class="t"></span></button></div>
+  <div class="checkrow">
+    <button type="button" class="btn check" data-p="2" disabled>答え合わせ</button>
+    <span class="result" data-p="2" aria-live="polite"></span>
+  </div>
+  <details class="sc" data-p="2">
+    <summary>台本・解説を見る</summary>
+    <div class="expl"><div class="h">正解 <b>A</b></div><ul><li>★から上にまっすぐ行き、<b>2つ目の角</b>（second corner）を<b>左</b>（left）に曲がる。</li><li>左に曲がって進むと、<b>左手</b>（on your left）は下側。銀行のとなりの <b>A</b> が郵便局。</li><li>B は右手（right）側。C は<b>1つ目</b>の角を左に曲がった場合。D は右に曲がった場合。</li></ul>
+      <p class="tip"><span class="vl">ポイント</span>first / second（1つ目・2つ目）と right / left を聞きとる。地図を指でたどりながら聞く。</p></div>
+    
+    <p class="note">黄色の部分が答えの根拠です。行をタップすると、そこから流れます。緑の「音」は、2語以上でつながって聞こえるところです。</p>
+    <div class="script"><div class="turn" data-p="2" data-t="n"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>No.<rt>ナンバー</rt></ruby> <ruby>3<rt>スリー</rt></ruby></div></div></div><div class="turn" data-p="2" data-t="m1"><span class="who m">Man</span><div class="s"><div class="en"><ruby>Excuse<rt>イクスキューズ</rt></ruby> <ruby>me.<rt>ミー</rt></ruby> <ruby>How<rt>ハウ</rt></ruby> <ruby>can<rt>キャン</rt></ruby> <ruby>I<rt>アイ</rt></ruby> <ruby>get<rt>ゲット</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>post<rt>ポウスト</rt></ruby> <ruby>office?<rt>オフィス</rt></ruby></div><div class="jp">すみません。郵便局にはどうやって行けばいいですか。</div><div class="voc"><span class="vl">語句</span>How can I get to ～?：～にはどう行けばいいですか ／ post office：郵便局</div><div class="voc link"><span class="vl snd">音</span>get to → ゲットゥ（t が1つに聞こえる）</div></div></div><div class="turn" data-p="2" data-t="w1"><span class="who f">Woman</span><div class="s"><div class="en"><mark class="ev"><ruby>Go<rt>ゴウ</rt></ruby> <ruby>straight<rt>ストレイト</rt></ruby> <ruby>and<rt>アンド</rt></ruby> <ruby>turn<rt>ターン</rt></ruby> <ruby>left<rt>レフト</rt></ruby> <ruby>at<rt>アット</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>second<rt>セカンド</rt></ruby> <ruby>corner.<rt>コーナー</rt></ruby></mark></div><div class="jp">まっすぐ行って、2つ目の角を左に曲がってください。</div><div class="voc"><span class="vl">語句</span>turn left：左に曲がる ／ second corner：2つ目の角</div><div class="voc link"><span class="vl snd">音</span>turn left at the → ターン レフタッザ（t と a がつながる）</div></div><div class="s"><div class="en"><mark class="ev"><ruby>You&#x27;ll<rt>ユール</rt></ruby> <ruby>see<rt>シー</rt></ruby> <ruby>it<rt>イット</rt></ruby> <ruby>on<rt>オン</rt></ruby> <ruby>your<rt>ユア</rt></ruby> <ruby>left.<rt>レフト</rt></ruby> <ruby>It&#x27;s<rt>イッツ</rt></ruby> <ruby>next<rt>ネクスト</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>bank.<rt>バンク</rt></ruby></mark></div><div class="jp">左手に見えますよ。銀行のとなりです。</div><div class="voc"><span class="vl">語句</span>on your left：左手に ／ next to ～：～のとなり</div><div class="voc link"><span class="vl snd">音</span>see it on → シーイットン（3語がつながる）</div></div></div><div class="turn" data-p="2" data-t="m2"><span class="who m">Man</span><div class="s"><div class="en"><ruby>Turn<rt>ターン</rt></ruby> <ruby>left<rt>レフト</rt></ruby> <ruby>at<rt>アット</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>second<rt>セカンド</rt></ruby> <ruby>corner.<rt>コーナー</rt></ruby> <ruby>I<rt>アイ</rt></ruby> <ruby>see.<rt>シー</rt></ruby> <ruby>Thank<rt>サンク</rt></ruby> <ruby>you.<rt>ユー</rt></ruby></div><div class="jp">2つ目の角を左ですね。わかりました。ありがとうございます。</div><div class="voc"><span class="vl">語句</span>I see.：わかりました</div></div></div><div class="turn" data-p="2" data-t="w2"><span class="who f">Woman</span><div class="s"><div class="en"><ruby>You&#x27;re<rt>ユア</rt></ruby> <ruby>welcome.<rt>ウェルカム</rt></ruby></div><div class="jp">どういたしまして。</div></div></div><div class="turn" data-p="2" data-t="q"><span class="who q">質問</span><div class="s"><div class="en"><ruby>Question:<rt>クエスチョン</rt></ruby> <ruby>Where<rt>ウェア</rt></ruby> <ruby>is<rt>イズ</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>post<rt>ポウスト</rt></ruby> <ruby>office?<rt>オフィス</rt></ruby></div><div class="jp">質問：郵便局はどこですか。</div></div></div></div>
+  </details>
+</section>
+<section class="sec"><h2>【No.4・No.5】</h2><p class="inst-en">Listen to each situation and choose the best answer for each question.</p><p class="inst">場面の説明を聞いて、質問の答えとして最も適するものを A〜D から1つずつ選びなさい。</p></section>
+<section class="prob" id="no4" data-p="3">
+  <h3>No.4</h3>
+  <div class="player" data-p="3">
+    <button type="button" class="btn main play" data-p="3">▶ 聞く</button>
+    <button type="button" class="btn again" data-p="3" aria-label="最初から">↺ 最初から</button>
+    <input type="range" class="seek" data-p="3" min="0" max="100" step="0.1" value="0" aria-label="再生位置">
+    <span class="time" data-p="3">0:00</span>
+  </div>
+  <div class="chs txt" data-p="3"><button type="button" class="ch txt" data-k="A"><span class="k">A</span><span class="t">Can I use your wallet?</span></button><button type="button" class="ch txt" data-k="B"><span class="k">B</span><span class="t">How much is this wallet?</span></button><button type="button" class="ch txt" data-k="C"><span class="k">C</span><span class="t">Excuse me. You dropped your wallet.</span></button><button type="button" class="ch txt" data-k="D"><span class="k">D</span><span class="t">I lost my wallet on the train.</span></button></div>
+  <div class="checkrow">
+    <button type="button" class="btn check" data-p="3" disabled>答え合わせ</button>
+    <span class="result" data-p="3" aria-live="polite"></span>
+  </div>
+  <details class="sc" data-p="3">
+    <summary>台本・解説を見る</summary>
+    <div class="expl"><div class="h">正解 <b>C</b></div><ul><li>男の人が<b>財布を落とした</b>のに、気づいていない。</li><li>→ マリが男の人に教えてあげる。<b>You dropped your wallet.</b>（財布を落としましたよ）。</li><li>D は「自分（マリ）が」なくしたことになるので×。A・B は場面に合わない。</li></ul>
+      <p class="tip"><span class="vl">ポイント</span>「だれのもの」か（his wallet）に注意。知らせるときは Excuse me. から始める。</p></div>
+    <div class="chmean"><div class="h">選択肢の意味</div><p><b>A</b> Can I use your wallet?<br><span class="jp">あなたの財布を使ってもいいですか。</span></p><p><b>B</b> How much is this wallet?<br><span class="jp">この財布はいくらですか。</span></p><p><b>C</b> Excuse me. You dropped your wallet.<br><span class="jp">すみません。財布を落としましたよ。</span></p><p><b>D</b> I lost my wallet on the train.<br><span class="jp">電車で財布をなくしました。</span></p></div>
+    <p class="note">黄色の部分が答えの根拠です。行をタップすると、そこから流れます。緑の「音」は、2語以上でつながって聞こえるところです。</p>
+    <div class="script"><div class="turn" data-p="3" data-t="n"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>No.<rt>ナンバー</rt></ruby> <ruby>4<rt>フォー</rt></ruby></div></div></div><div class="turn" data-p="3" data-t="s1"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>Mari<rt>マリ</rt></ruby> <ruby>is<rt>イズ</rt></ruby> <ruby>walking<rt>ウォーキング</rt></ruby> <ruby>in<rt>イン</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>station.<rt>ステイション</rt></ruby></div><div class="jp">マリは駅の中を歩いています。</div><div class="voc"><span class="vl">語句</span>in the station：駅の中で</div></div><div class="s"><div class="en"><mark class="ev"><ruby>A<rt>ア</rt></ruby> <ruby>man<rt>マン</rt></ruby> <ruby>in<rt>イン</rt></ruby> <ruby>front<rt>フロント</rt></ruby> <ruby>of<rt>オヴ</rt></ruby> <ruby>her<rt>ハー</rt></ruby> <ruby>drops<rt>ドロップス</rt></ruby> <ruby>his<rt>ヒズ</rt></ruby> <ruby>wallet,<rt>ワレット</rt></ruby> <ruby>but<rt>バット</rt></ruby> <ruby>he<rt>ヒー</rt></ruby> <ruby>doesn&#x27;t<rt>ダズント</rt></ruby> <ruby>notice<rt>ノウティス</rt></ruby> <ruby>it.<rt>イット</rt></ruby></mark></div><div class="jp">彼女の前の男の人が財布を落としましたが、気づいていません。</div><div class="voc"><span class="vl">語句</span>drop：落とす ／ wallet：財布 ／ notice：気づく</div><div class="voc link"><span class="vl snd">音</span>drops his → ドロップスィズ（h が弱くなる）</div></div><div class="s"><div class="en"><ruby>Mari<rt>マリ</rt></ruby> <ruby>picks<rt>ピックス</rt></ruby> <ruby>it<rt>イット</rt></ruby> <ruby>up<rt>アップ</rt></ruby> <ruby>and<rt>アンド</rt></ruby> <ruby>runs<rt>ランズ</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>him.<rt>ヒム</rt></ruby></div><div class="jp">マリはそれを拾って、彼のところへ走ります。</div><div class="voc"><span class="vl">語句</span>pick up ～：～を拾う ／ run to ～：～へ走る</div><div class="voc link"><span class="vl snd">音</span>picks it up → ピックスィタップ（3語がつながる）</div></div></div><div class="turn" data-p="3" data-t="q"><span class="who q">質問</span><div class="s"><div class="en"><ruby>Question:<rt>クエスチョン</rt></ruby> <ruby>What<rt>ワット</rt></ruby> <ruby>will<rt>ウィル</rt></ruby> <ruby>Mari<rt>マリ</rt></ruby> <ruby>say<rt>セイ</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>man?<rt>マン</rt></ruby></div><div class="jp">質問：マリは男の人に何と言いますか。</div></div></div></div>
+  </details>
+</section>
+<section class="prob" id="no5" data-p="4">
+  <h3>No.5</h3>
+  <div class="player" data-p="4">
+    <button type="button" class="btn main play" data-p="4">▶ 聞く</button>
+    <button type="button" class="btn again" data-p="4" aria-label="最初から">↺ 最初から</button>
+    <input type="range" class="seek" data-p="4" min="0" max="100" step="0.1" value="0" aria-label="再生位置">
+    <span class="time" data-p="4">0:00</span>
+  </div>
+  <div class="chs txt" data-p="4"><button type="button" class="ch txt" data-k="A"><span class="k">A</span><span class="t">Are you OK? You should go home and rest.</span></button><button type="button" class="ch txt" data-k="B"><span class="k">B</span><span class="t">Let&#x27;s practice harder today.</span></button><button type="button" class="ch txt" data-k="C"><span class="k">C</span><span class="t">I have a cold, too. I&#x27;ll go home.</span></button><button type="button" class="ch txt" data-k="D"><span class="k">D</span><span class="t">Did you see the doctor yesterday?</span></button></div>
+  <div class="checkrow">
+    <button type="button" class="btn check" data-p="4" disabled>答え合わせ</button>
+    <span class="result" data-p="4" aria-live="polite"></span>
+  </div>
+  <details class="sc" data-p="4">
+    <summary>台本・解説を見る</summary>
+    <div class="expl"><div class="h">正解 <b>A</b></div><ul><li>ルーシーは<b>顔色が悪く</b>（looks sick）、<b>頭が痛い</b>（has a headache）と言っている。</li><li>→ ケイは心配して、休むようにすすめる。<b>You should ～.</b>（～したほうがいい）。</li><li>B は逆。C は「ケイも」かぜをひいたことになるので×。</li></ul>
+      <p class="tip"><span class="vl">ポイント</span>sick（具合が悪い）／ headache（頭痛）が聞こえたら、答えは Are you OK? ／ You should rest. などの心配する言葉。</p></div>
+    <div class="chmean"><div class="h">選択肢の意味</div><p><b>A</b> Are you OK? You should go home and rest.<br><span class="jp">だいじょうぶ？ 家に帰って休んだほうがいいよ。</span></p><p><b>B</b> Let&#x27;s practice harder today.<br><span class="jp">今日はもっと一生けんめい練習しよう。</span></p><p><b>C</b> I have a cold, too. I&#x27;ll go home.<br><span class="jp">わたしもかぜをひいているの。帰るね。</span></p><p><b>D</b> Did you see the doctor yesterday?<br><span class="jp">昨日、医者に行った？</span></p></div>
+    <p class="note">黄色の部分が答えの根拠です。行をタップすると、そこから流れます。緑の「音」は、2語以上でつながって聞こえるところです。</p>
+    <div class="script"><div class="turn" data-p="4" data-t="n"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>No.<rt>ナンバー</rt></ruby> <ruby>5<rt>ファイヴ</rt></ruby></div></div></div><div class="turn" data-p="4" data-t="s1"><span class="who narr">放送</span><div class="s"><div class="en"><ruby>Kei<rt>ケイ</rt></ruby> <ruby>and<rt>アンド</rt></ruby> <ruby>Lucy<rt>ルーシィ</rt></ruby> <ruby>are<rt>アー</rt></ruby> <ruby>practicing<rt>プラクティスィング</rt></ruby> <ruby>for<rt>フォー</rt></ruby> <ruby>the<rt>ザ</rt></ruby> <ruby>chorus<rt>コーラス</rt></ruby> <ruby>contest<rt>コンテスト</rt></ruby> <ruby>after<rt>アフター</rt></ruby> <ruby>school.<rt>スクール</rt></ruby></div><div class="jp">ケイとルーシーは放課後、合唱コンクールの練習をしています。</div><div class="voc"><span class="vl">語句</span>practice：練習する ／ chorus contest：合唱コンクール</div></div><div class="s"><div class="en"><mark class="ev"><ruby>Lucy<rt>ルーシィ</rt></ruby> <ruby>looks<rt>ルックス</rt></ruby> <ruby>sick.<rt>スィック</rt></ruby> <ruby>She<rt>シー</rt></ruby> <ruby>says<rt>セズ</rt></ruby> <ruby>she<rt>シー</rt></ruby> <ruby>has<rt>ハズ</rt></ruby> <ruby>a<rt>ア</rt></ruby> <ruby>headache.<rt>ヘデイク</rt></ruby></mark></div><div class="jp">ルーシーは具合が悪そうです。彼女は頭が痛いと言います。</div><div class="voc"><span class="vl">語句</span>look sick：具合が悪そうに見える ／ have a headache：頭が痛い</div><div class="voc link"><span class="vl snd">音</span>has a → ハザ（s と a がつながる）</div></div><div class="s"><div class="en"><ruby>Kei<rt>ケイ</rt></ruby> <ruby>is<rt>イズ</rt></ruby> <ruby>worried<rt>ウォリード</rt></ruby> <ruby>about<rt>アバウト</rt></ruby> <ruby>her.<rt>ハー</rt></ruby></div><div class="jp">ケイは彼女のことを心配しています。</div><div class="voc"><span class="vl">語句</span>be worried about ～：～を心配している</div><div class="voc link"><span class="vl snd">音</span>worried about her → ウォリーダバウター</div></div></div><div class="turn" data-p="4" data-t="q"><span class="who q">質問</span><div class="s"><div class="en"><ruby>Question:<rt>クエスチョン</rt></ruby> <ruby>What<rt>ワット</rt></ruby> <ruby>will<rt>ウィル</rt></ruby> <ruby>Kei<rt>ケイ</rt></ruby> <ruby>say<rt>セイ</rt></ruby> <ruby>to<rt>トゥ</rt></ruby> <ruby>Lucy?<rt>ルーシィ</rt></ruby></div><div class="jp">質問：ケイはルーシーに何と言いますか。</div></div></div></div>
+  </details>
+</section>
+  <section class="score">
+    <p id="score">答え合わせ：0／5問</p>
+    <button type="button" class="btn" id="reset">もう一度ちょうせん</button>
+  </section>
+</div>
+<audio id="audio" preload="none"></audio>
+<script>var P = [{"no": 1, "answer": "D", "audio": "audio/listening-07-no1.mp3", "times": {"n": [0.5, 1.652], "n1": [2.002, 4.263], "t1": [4.613, 9.642], "n2": [9.992, 12.722], "t2": [13.072, 18.022], "q": [19.022, 21.731]}}, {"no": 2, "answer": "B", "audio": "audio/listening-07-no2.mp3", "times": {"n": [0.5, 1.673], "m1": [2.023, 4.242], "n1": [4.592, 5.679], "m2": [6.029, 10.253], "n2": [10.603, 13.101], "q": [14.101, 17.002]}}, {"no": 3, "answer": "A", "audio": "audio/listening-07-no3.mp3", "times": {"n": [0.5, 1.631], "m1": [1.981, 5.055], "w1": [5.405, 10.76], "m2": [11.11, 14.312], "w2": [14.662, 15.473], "q": [16.473, 18.713]}}, {"no": 4, "answer": "C", "audio": "audio/listening-07-no4.mp3", "times": {"n": [0.5, 1.695], "s1": [2.045, 10.386], "q": [11.386, 13.797]}}, {"no": 5, "answer": "A", "audio": "audio/listening-07-no5.mp3", "times": {"n": [0.5, 1.759], "s1": [2.109, 10.493], "q": [11.493, 13.839]}}];
+(function () {
+  var audio = document.getElementById("audio");
+  var twice = document.getElementById("twice");
+  var RATE = 1;
+  var cur = -1;        // 再生中の問題
+  var pass = 0;        // 2回流すための回数
+  var pendingSeek = null;
+  var chosen = {}, checked = {};
+
+  function $all(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function q(sel, i) { return document.querySelector(sel + '[data-p="' + i + '"]'); }
+  function fmt(s) { if (!isFinite(s) || s < 0) s = 0; var m = Math.floor(s / 60), r = Math.floor(s % 60); return m + ":" + (r < 10 ? "0" : "") + r; }
+  function total() { return isFinite(audio.duration) ? audio.duration : 0; }
+
+  function setBtn(i, playing) {
+    var b = q(".play", i);
+    if (b) b.textContent = playing ? "⏸ 止める" : "▶ 聞く";
+  }
+  function clearNow() { $all(".turn.now").forEach(function (el) { el.classList.remove("now"); }); }
+
+  function load(i) {
+    if (cur === i) return;
+    if (cur >= 0) { setBtn(cur, false); }
+    clearNow();
+    cur = i; pass = 0;
+    audio.src = P[i].audio;
+    audio.load();
+  }
+  function start(i, t) {
+    var fresh = cur !== i;
+    load(i);
+    if (fresh) pendingSeek = t || 0;
+    else audio.currentTime = t || 0;
+    audio.playbackRate = RATE;
+    var pr = audio.play();
+    if (pr && pr.catch) pr.catch(function () {});
+  }
+
+  audio.addEventListener("loadedmetadata", function () {
+    if (pendingSeek) { try { audio.currentTime = pendingSeek; } catch (e) {} }
+    pendingSeek = null;
+    audio.playbackRate = RATE;
+  });
+  audio.addEventListener("play", function () { audio.playbackRate = RATE; setBtn(cur, true); });
+  audio.addEventListener("pause", function () { setBtn(cur, false); });
+  audio.addEventListener("timeupdate", function () {
+    if (cur < 0) return;
+    var now = audio.currentTime, d = total();
+    var tm = q(".time", cur), sk = q(".seek", cur);
+    if (tm) tm.textContent = (pass ? "2回目 " : "") + fmt(now) + " / " + fmt(d);
+    if (sk && d) sk.value = String(now / d * 100);
+    var T = P[cur].times, hit = null;
+    Object.keys(T).forEach(function (id) { if (now >= T[id][0] - 0.05 && now < T[id][1] + 0.3) hit = id; });
+    $all('.turn[data-p="' + cur + '"]').forEach(function (el) {
+      var on = el.getAttribute("data-t") === hit;
+      if (on && !el.classList.contains("now")) {
+        el.classList.add("now");
+        var d2 = el.closest("details");
+        if (d2 && d2.open && !audio.paused) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      } else if (!on) el.classList.remove("now");
+    });
+  });
+  audio.addEventListener("ended", function () {
+    if (twice.checked && pass === 0) {
+      pass = 1; audio.currentTime = 0; audio.play(); return;
+    }
+    pass = 0; setBtn(cur, false); clearNow();
+  });
+
+  $all(".play").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var i = Number(b.getAttribute("data-p"));
+      if (cur === i && !audio.paused) { audio.pause(); return; }
+      if (cur === i && !audio.ended && audio.currentTime > 0) { audio.play(); return; }
+      if (cur === i) pass = 0;
+      start(i, 0);
+    });
+  });
+  $all(".again").forEach(function (b) {
+    b.addEventListener("click", function () { var i = Number(b.getAttribute("data-p")); if (cur === i) pass = 0; start(i, 0); });
+  });
+  $all(".seek").forEach(function (s) {
+    s.addEventListener("input", function () {
+      var i = Number(s.getAttribute("data-p"));
+      if (cur !== i) { start(i, 0); return; }
+      if (total()) audio.currentTime = Number(s.value) / 100 * total();
+    });
+  });
+  $all(".turn").forEach(function (el) {
+    el.addEventListener("click", function () {
+      var i = Number(el.getAttribute("data-p"));
+      var t = P[i].times[el.getAttribute("data-t")];
+      if (cur === i) pass = 0;
+      start(i, t ? t[0] : 0);
+    });
+  });
+  $all(".rate").forEach(function (b) {
+    b.addEventListener("click", function () {
+      RATE = Number(b.getAttribute("data-rate"));
+      audio.playbackRate = RATE;
+      $all(".rate").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    });
+  });
+
+  // 選択肢と答え合わせ
+  $all(".chs").forEach(function (box) {
+    var i = Number(box.getAttribute("data-p"));
+    box.querySelectorAll(".ch").forEach(function (c) {
+      c.setAttribute("aria-pressed", "false");
+      c.addEventListener("click", function () {
+        if (checked[i]) return;
+        chosen[i] = c.getAttribute("data-k");
+        box.querySelectorAll(".ch").forEach(function (x) { x.setAttribute("aria-pressed", x === c ? "true" : "false"); });
+        q(".check", i).disabled = false;
+      });
+    });
+  });
+  function updateScore() {
+    var n = 0, ok = 0;
+    Object.keys(checked).forEach(function (i) { n++; if (checked[i] === "ok") ok++; });
+    document.getElementById("score").textContent = "答え合わせ：" + n + "／" + P.length + "問　正解：" + ok + "問";
+  }
+  $all(".check").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var i = Number(b.getAttribute("data-p"));
+      if (!chosen[i] || checked[i]) return;
+      var ans = P[i].answer, good = chosen[i] === ans;
+      checked[i] = good ? "ok" : "ng";
+      var r = q(".result", i);
+      r.textContent = good ? "○ 正解！" : "× 正解は " + ans;
+      r.className = "result " + (good ? "ok" : "ng");
+      q(".chs", i).querySelectorAll(".ch").forEach(function (x) {
+        var k = x.getAttribute("data-k");
+        if (k === ans) x.classList.add("ok");
+        else if (k === chosen[i]) x.classList.add("ng");
+      });
+      b.disabled = true;
+      q("details.sc", i).open = true;
+      updateScore();
+    });
+  });
+  document.getElementById("reset").addEventListener("click", function () {
+    chosen = {}; checked = {};
+    $all(".ch").forEach(function (x) { x.setAttribute("aria-pressed", "false"); x.classList.remove("ok"); x.classList.remove("ng"); });
+    $all(".result").forEach(function (r) { r.textContent = ""; r.className = "result"; });
+    $all(".check").forEach(function (b) { b.disabled = true; });
+    $all("details.sc").forEach(function (d) { d.open = false; });
+    audio.pause(); updateScore();
+    window.scrollTo(0, 0);
+  });
+})();
+</script>
+</body>
+</html>
