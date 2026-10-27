@@ -1202,7 +1202,11 @@
           wifi: String(j["Wi-Fi名"] || "").trim(),
           note: String(j["ひとこと"] || "").trim(),
           // 割り付け：書かない or "2in1" → 2in1（1枚に2ページ）／ "1in1" → 1枚に1ページ
-          nup: /^\s*1\s*in\s*1\s*$/i.test(String(j["割り付け"] || "")) ? 1 : 2
+          nup: /^\s*1\s*in\s*1\s*$/i.test(String(j["割り付け"] || "")) ? 1 : 2,
+          // 色：書かない or "モノクロ" → 白黒（グレー）で印刷／ "カラー" → カラー
+          mono: !/カラー|color/i.test(String(j["色"] || "")),
+          // 品質：書かない or "下書き" → 軽いデータで速く印刷／ "標準" → きれいに印刷
+          draft: !/標準|きれい|normal|high/i.test(String(j["品質"] || ""))
         };
         return PRINT_CFG;
       });
@@ -1238,8 +1242,22 @@
   //  nup=2 … 2in1：A4よこに2ページならべた形を、A4たての紙に向きを変えて1枚にする
   //           （スマホ・プリンターの設定に関係なく、だれが印刷しても必ず2in1になる）
   //  nup=1 … 1ページずつ
-  var SHEET_W = 1654, SHEET_H = 2339;   // A4を約200dpi（スマホのメモリにもやさしい大きさ）
-  function buildPrintPages(doc, nums, nup, onProgress) {
+  //  下書き … A4を約150dpi・JPEGを軽め（プリンターに送るデータが小さくなり、速く出る）
+  //  標準   … A4を約200dpi
+  //  モノクロ … 絵をグレーに変えてから送る（黒インク・トナーだけで印刷される）
+  var SHEET_W = 1654, SHEET_H = 2339;
+  function toGray(ctx, w, h) {
+    var img = ctx.getImageData(0, 0, w, h), d = img.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var g = (d[i] * 77 + d[i + 1] * 151 + d[i + 2] * 28) >> 8;
+      d[i] = d[i + 1] = d[i + 2] = g;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  function buildPrintPages(doc, nums, cfg, onProgress) {
+    var nup = cfg.nup;
+    var k = cfg.draft ? 150 / 200 : 1;
+    var SW = Math.round(SHEET_W * k), SH = Math.round(SHEET_H * k);
     clearPrintArea();
     var area = document.createElement("div");
     area.id = "printArea";
@@ -1254,25 +1272,25 @@
     sheets.forEach(function (group) {
       chain = chain.then(function () {
         var sheet = document.createElement("canvas");
-        sheet.width = SHEET_W; sheet.height = SHEET_H;
+        sheet.width = SW; sheet.height = SH;
         var sx = sheet.getContext("2d");
-        sx.fillStyle = "#fff"; sx.fillRect(0, 0, SHEET_W, SHEET_H);
+        sx.fillStyle = "#fff"; sx.fillRect(0, 0, SW, SH);
 
         var inner = Promise.resolve();
         if (nup === 1) {
           inner = inner.then(function () {
             onProgress(++done, nums.length);
-            return renderPageCanvas(doc, group[0], SHEET_W, SHEET_H);
+            return renderPageCanvas(doc, group[0], SW, SH);
           }).then(function (c) {
-            sx.drawImage(c, (SHEET_W - c.width) / 2, (SHEET_H - c.height) / 2);
+            sx.drawImage(c, (SW - c.width) / 2, (SH - c.height) / 2);
             c.width = c.height = 0;
           });
         } else {
           // A4よこ（2339×1654）を左右半分ずつに分けて、それぞれに1ページ
-          var LW = SHEET_H, LH = SHEET_W, gap = 40, pad = 30;
+          var LW = SH, LH = SW, gap = Math.round(40 * k), pad = Math.round(30 * k);
           var halfW = (LW - pad * 2 - gap) / 2, halfH = LH - pad * 2;
           // よこの絵を時計まわりに90°回して、たての紙に描く（1ページ目が上、2ページ目が下）
-          sx.translate(SHEET_W, 0);
+          sx.translate(SW, 0);
           sx.rotate(Math.PI / 2);
           group.forEach(function (n, k) {
             inner = inner.then(function () {
@@ -1292,7 +1310,8 @@
         }
 
         return inner.then(function () {
-          return new Promise(function (ok) { sheet.toBlob(ok, "image/jpeg", 0.92); });
+          if (cfg.mono) { sx.setTransform(1, 0, 0, 1, 0, 0); toGray(sx, SW, SH); }
+          return new Promise(function (ok) { sheet.toBlob(ok, "image/jpeg", cfg.draft ? 0.8 : 0.92); });
         }).then(function (blob) {
           sheet.width = sheet.height = 0;
           var url = URL.createObjectURL(blob);
@@ -1346,6 +1365,9 @@
         (cfg.note ? '<p class="guide-note">' + esc(cfg.note) + "</p>" : "") +
         (cfg.nup === 2 ? '<p class="guide-nup"><span class="nup-mark" aria-hidden="true"><i></i><i></i></span>' +
           "<span><b>2in1</b>（1枚の紙に2ページ）で印刷されます。<span class=\"guide-small\">印刷画面で何も変えなくてOK。</span></span></p>" : "") +
+        (cfg.mono || cfg.draft ? '<p class="guide-small">' + (cfg.mono ? "<b>白黒</b>" : "") + (cfg.mono && cfg.draft ? "・" : "") +
+          (cfg.draft ? "<b>はやく出る設定（下書き）</b>" : "") + "で印刷されます。" +
+          (cfg.mono ? "印刷画面に「白黒」「モノクロ」があればオンにすると、さらに速くなります。" : "") + "</p>" : "") +
         '<div class="pg-pick"><div class="pg-pick-head"><b>印刷するページ</b>' +
         '<button type="button" class="pg-all" id="pgAll">すべて外す</button></div>' +
         '<div class="pg-chips" id="pgChips">' + chips + "</div>" +
@@ -1396,7 +1418,7 @@
         var nums = picked();
         if (!nums.length) return;
         go.disabled = true;
-        buildPrintPages(doc, nums, cfg.nup, function (i, total) {
+        buildPrintPages(doc, nums, cfg, function (i, total) {
           go.textContent = "じゅんび中… " + i + " / " + total;
         }).then(function () {
           s.close();
