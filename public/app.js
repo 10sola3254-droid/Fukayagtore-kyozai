@@ -523,8 +523,7 @@
       var want = new URLSearchParams(location.search).get("set");
       if (sets) {
         var tabs = document.getElementById("setTabs");
-        var all = [{ key: "", name: "全部", desc: "まとめ・A問題・B問題すべて" }].concat(sets);
-        tabs.innerHTML = all.map(function (x) {
+        tabs.innerHTML = sets.map(function (x) {
           return '<button type="button" role="tab" data-set="' + esc(x.key) + '" title="' + esc(x.desc) + '">' + esc(x.name) + "</button>";
         }).join("");
         tabs.hidden = false;
@@ -535,12 +534,14 @@
       }
       // A問題・B問題に分けていない教材は、この行を出さない（ダウンロードは理科の分けた教材だけ）
       if (!sets) document.getElementById("setRow").remove();
-      var start = sets && sets.some(function (x) { return x.key === want; }) ? want : "";
+      // 理科は「まとめ」から表示（まとめ／A問題／B問題）。分けていない教材は全体を表示
+      var start = sets ? (sets.some(function (x) { return x.key === want; }) ? want : sets[0].key) : "";
       choose(start, false);
 
       function choose(key, fromTap) {
         var set = sets && sets.filter(function (x) { return x.key === key; })[0];
-        var mm = set ? { type: "pdf", src: m.src.replace(/[^/]+$/, encodeURI(set.file)), open: m.open.replace(/[^/]+$/, encodeURI(set.file)) } : m;
+        var mm = set ? { type: "pdf", src: m.src.replace(/[^/]+$/, encodeURI(set.file)), open: m.open.replace(/[^/]+$/, encodeURI(set.file)),
+                         noPrint: set.print === false } : m;
         if (sets) {
           document.querySelectorAll("#setTabs [data-set]").forEach(function (b) {
             b.setAttribute("aria-selected", String(b.getAttribute("data-set") === key));
@@ -553,7 +554,7 @@
         if (dl) {
           dl.href = mm.src;
           dl.setAttribute("download", dlName(topic.title, set ? set.name : ""));
-          dl.setAttribute("aria-label", (set ? set.name : "全部") + "をダウンロード");
+          dl.setAttribute("aria-label", (set ? set.name : "教材") + "をダウンロード");
         }
         document.getElementById("openBtn").href = mm.open;
         if (fromTap && currentPdfTask && currentPdfTask.material && currentPdfTask.material.src === mm.src) return;
@@ -566,7 +567,9 @@
           var b = document.getElementById(id);
           b.replaceWith(b.cloneNode(true));
         });
-        document.getElementById("printBtn").disabled = true;
+        var pbtn = document.getElementById("printBtn");
+        pbtn.disabled = true;
+        pbtn.hidden = !!mm.noPrint;   // B問題は印刷しない（まとめ・A問題だけ印刷できる）
         document.getElementById("pgInfo").innerHTML = label;
         document.getElementById("pdfPages").innerHTML =
           '<div class="viewer-msg" id="pdfMsg"><div class="spinner"></div>読みこみ中…</div><div class="pdf-stack" id="pdfStack"></div>';
@@ -576,8 +579,9 @@
     });
   }
 
-  /* ---------------- 理科：まとめ＋A問題／まとめ＋B問題 の切りかえとダウンロード ---------------- */
-  // PDFと同じ名前の .sets.json があるときだけ「全部／A問題／B問題」のボタンが出ます（tools/split_rika.py で作成）
+  /* ---------------- 理科：まとめ／A問題／B問題 の切りかえとダウンロード ---------------- */
+  // PDFと同じ名前の .sets.json があるときだけ「まとめ／A問題／B問題」のボタンが出ます（tools/split_rika.py で作成）
+  // "print": false のセット（B問題）は印刷ボタンを出しません
   function loadSets(m) {
     var url = m.src.replace(/\.pdf$/i, ".sets.json");
     if (url === m.src) return Promise.resolve(null);
@@ -648,7 +652,7 @@
       task.doc = doc;
       msg.remove();
       var pb = document.getElementById("printBtn");
-      if (pb) pb.disabled = false;
+      if (pb) pb.disabled = !!m.noPrint;
       return setupPages(task, doc, stack, info, label).then(function () { return initQuiz(task, m); });
     }).catch(function (e) {
       fail(esc(e && e.message ? e.message : "PDFが読みこめませんでした。"));
@@ -1309,6 +1313,7 @@
   function openPrintSheet() {
     var task = currentPdfTask;
     if (!task || !task.doc) return;
+    if (task.material && task.material.noPrint) return;   // B問題は印刷しない
     var doc = task.doc;
     var n = doc.numPages;
     var d = deviceInfo();

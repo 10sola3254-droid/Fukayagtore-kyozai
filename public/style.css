@@ -641,6 +641,7 @@ body.has-sheet { overflow: hidden; }
 
 .print-btn { gap: 4px; font-size: 14px; padding: 0 10px; }
 .print-btn:disabled { opacity: .45; cursor: default; }
+.print-btn[hidden] { display: none; }   /* 理科のB問題は印刷しない */
 @media (max-width: 380px) { .print-btn span { display: none; } }
 
 /* ===== 印刷するときは、えらんだ教材のページだけを出す ===== */

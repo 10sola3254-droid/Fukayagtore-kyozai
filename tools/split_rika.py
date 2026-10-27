@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""理科Gトレ教材（要点と対策）を「まとめ＋A問題」「まとめ＋B問題」の2つに分ける。
+"""理科Gトレ教材（要点と対策）を「まとめ」「A問題」「B問題」の3つに分ける。
 
 使い方:
     python3 tools/split_rika.py public/materials/rika-yoten-01-r2.pdf [...]
     python3 tools/split_rika.py --all          # public/materials/rika-yoten-*.pdf すべて
 
 できるもの（PDFと同じフォルダ）:
-    xxx-A.pdf        … 解説まとめページ ＋ A問題 ＋ A問題の解答
-    xxx-B.pdf        … 解説まとめページ ＋ B問題 ＋ B問題の解説
-    xxx.sets.json    … アプリが「全部／A問題／B問題」の切りかえとダウンロードに使う
+    xxx-M.pdf        … 解説まとめページだけ
+    xxx-A.pdf        … A問題 ＋ A問題の解答
+    xxx-B.pdf        … B問題 ＋ B問題の解説
+    xxx.sets.json    … アプリが「まとめ／A問題／B問題」の切りかえ・ダウンロード・印刷に使う
+                        （印刷できるのは まとめ と A問題 だけ。B問題は "print": false）
 
 ページの見分け方: 各ページ上の帯の文字
     「A 問題」「A 問題 解答」→ A ／ 「B 問題」「B 問題 解説」→ B ／ それ以外 → まとめ（補強・計算ページもふくむ）
@@ -44,7 +46,7 @@ def split(path):
 
     if not a and not b:
         print(f"  {os.path.basename(path)}: A・B問題なし（{label}）→ とばす")
-        for old in (base + "-A.pdf", base + "-B.pdf", base + ".sets.json"):
+        for old in (base + "-M.pdf", base + "-A.pdf", base + "-B.pdf", base + ".sets.json"):
             if os.path.exists(old):
                 os.remove(old)
         return
@@ -55,14 +57,15 @@ def split(path):
         print(f"  ⚠ {os.path.basename(path)}: 問題のあとに『まとめ』と判定したページ {late}（{label}）")
 
     sets = []
-    for key, qs, name, desc in (
-        ("A", a, "A問題", "解説まとめ ＋ A問題 ＋ 解答"),
-        ("B", b, "B問題", "解説まとめ ＋ B問題 ＋ 解説"),
+    for key, qs, name, desc, can_print in (
+        ("M", summary, "まとめ", "解説まとめページ", True),
+        ("A", a, "A問題", "A問題 ＋ 解答", True),
+        ("B", b, "B問題", "B問題 ＋ 解説", False),
     ):
         if not qs:
             continue
         w = PdfWriter()
-        for i in summary + qs:
+        for i in qs:
             w.add_page(reader.pages[i])
         w.compress_identical_objects()
         out = f"{base}-{key}.pdf"
@@ -73,7 +76,8 @@ def split(path):
             "name": name,
             "desc": desc,
             "file": os.path.basename(out),
-            "pages": len(summary) + len(qs),
+            "pages": len(qs),
+            "print": can_print,
         })
 
     with open(base + ".sets.json", "w", encoding="utf-8") as f:

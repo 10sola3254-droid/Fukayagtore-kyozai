@@ -1,18 +1,28 @@
 {
  "sets": [
   {
+   "key": "M",
+   "name": "まとめ",
+   "desc": "解説まとめページ",
+   "file": "rika-yoten-22-r2-M.pdf",
+   "pages": 4,
+   "print": true
+  },
+  {
    "key": "A",
    "name": "A問題",
-   "desc": "解説まとめ ＋ A問題 ＋ 解答",
+   "desc": "A問題 ＋ 解答",
    "file": "rika-yoten-22-r2-A.pdf",
-   "pages": 6
+   "pages": 2,
+   "print": true
   },
   {
    "key": "B",
    "name": "B問題",
-   "desc": "解説まとめ ＋ B問題 ＋ 解説",
+   "desc": "B問題 ＋ 解説",
    "file": "rika-yoten-22-r2-B.pdf",
-   "pages": 8
+   "pages": 4,
+   "print": false
   }
  ]
 }
