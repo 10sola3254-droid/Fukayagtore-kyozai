@@ -1,11 +1,12 @@
 /* ホーム画面アプリ用のしくみ（オフラインでも一度開いた教材は見られる） */
-var VERSION = "gtore-v2";
+var VERSION = "gtore-v3";
 var SHELL = [
   "./",
   "index.html",
   "style.css",
   "app.js",
   "materials.json",
+  "print.json",
   "manifest.webmanifest",
   "icons/icon-192.png",
   "icons/icon-512.png",

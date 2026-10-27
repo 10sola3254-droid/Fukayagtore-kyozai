@@ -324,12 +324,11 @@
         (empty ? '<span class="chip">準備中</span>' : units.length + '単元<span class="chev" aria-hidden="true">›</span>') +
         "</span></button></li>";
     });
-    html += "</ul>" +
+    html += "</ul>" + installCardHTML() +
       '<button type="button" class="qr-open-btn" id="qrOpenBtn">' +
       '<span class="qr-open-icon" aria-hidden="true">' + QR_ICON_SVG + "</span>" +
       '<span class="qr-open-text"><strong>QRコードを表示</strong>ほかの端末でも開けます</span>' +
-      '<span class="chev" aria-hidden="true">›</span></button>' +
-      installCardHTML();
+      '<span class="chev" aria-hidden="true">›</span></button>';
     view.innerHTML = html;
     view.querySelectorAll(".subject-btn").forEach(function (b) {
       b.addEventListener("click", function () {
@@ -508,9 +507,11 @@
       '<span class="viewer-title" id="pgInfo">' + label + "</span>" +
       '<button type="button" class="tool-btn" id="zoomOut" aria-label="小さくする">－</button>' +
       '<button type="button" class="tool-btn" id="zoomIn" aria-label="大きくする">＋</button>' +
+      '<button type="button" class="tool-btn print-btn" id="printBtn" aria-label="印刷" disabled>' + PRINT_ICON_SVG + "<span>印刷</span></button>" +
       '<a class="tool-btn text" href="' + esc(m.open) + '" target="_blank" rel="noopener">別画面</a>' +
       "</div>" +
       '<div class="pdf-pages" id="pdfPages"><div class="viewer-msg" id="pdfMsg"><div class="spinner"></div>読みこみ中…</div><div class="pdf-stack" id="pdfStack"></div></div>';
+    document.getElementById("printBtn").addEventListener("click", openPrintSheet);
     openPdf(m, label);
   }
 
@@ -522,6 +523,9 @@
   }
 
   function stopPdf() {
+    clearPrintArea();
+    var ps = document.getElementById("printSheet");
+    if (ps) { ps.remove(); document.body.classList.remove("has-sheet"); }
     document.body.classList.remove("has-quiz"); document.body.classList.remove("quiz-many");
     if (currentPdfTask) { currentPdfTask.cancelled = true; currentPdfTask.cleanup(); currentPdfTask = null; }
   }
@@ -532,6 +536,7 @@
       window.removeEventListener("resize", task.onResize);
       if (task.doc) task.doc.destroy();
     } };
+    task.material = m;
     currentPdfTask = task;
     var msg = document.getElementById("pdfMsg");
     var stack = document.getElementById("pdfStack");
@@ -562,6 +567,8 @@
       if (!doc || task.cancelled) { if (doc) doc.destroy(); return; }
       task.doc = doc;
       msg.remove();
+      var pb = document.getElementById("printBtn");
+      if (pb) pb.disabled = false;
       return setupPages(task, doc, stack, info, label).then(function () { return initQuiz(task, m); });
     }).catch(function (e) {
       fail(esc(e && e.message ? e.message : "PDFが読みこめませんでした。"));
@@ -946,51 +953,319 @@
     }).catch(function () { p.rendering = null; });
   }
 
-  /* ---------------- ホーム画面に追加 ---------------- */
+  /* ---------------- 共通：下から出る案内パネル ---------------- */
+  function openGuideSheet(id, title, bodyHTML) {
+    var old = document.getElementById(id);
+    if (old) old.remove();
+    var sheet = document.createElement("div");
+    sheet.className = "qr-sheet";
+    sheet.id = id;
+    sheet.innerHTML =
+      '<div class="qr-panel guide-panel" role="dialog" aria-modal="true" aria-labelledby="' + id + 'Title">' +
+      '<button type="button" class="install-close qr-close" data-close aria-label="とじる">×</button>' +
+      '<h2 class="qr-title" id="' + id + 'Title">' + title + "</h2>" + bodyHTML + "</div>";
+    document.body.appendChild(sheet);
+    document.body.classList.add("has-sheet");
+    function close() {
+      sheet.remove();
+      document.body.classList.remove("has-sheet");
+      document.removeEventListener("keydown", onKey);
+    }
+    function onKey(e) { if (e.key === "Escape") close(); }
+    document.addEventListener("keydown", onKey);
+    sheet.addEventListener("click", function (e) { if (e.target === sheet) close(); });
+    sheet.querySelectorAll("[data-close]").forEach(function (b) { b.addEventListener("click", close); });
+    sheet.querySelector("[data-close]").focus();
+    return { el: sheet, close: close };
+  }
+
+  // 使っている端末（iPhone / Android / それ以外）とアプリ内ブラウザかどうか
+  function deviceInfo() {
+    var ua = navigator.userAgent;
+    var ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var android = /Android/.test(ua);
+    var line = / Line\//i.test(ua);
+    var inApp = line || /FBAN|FBAV|Instagram|MicroMessenger|; wv\)/.test(ua);
+    var iosOther = ios && /CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+    return { ios: ios, android: android, line: line, inApp: inApp, iosOther: iosOther, kind: ios ? "ios" : android ? "android" : "pc" };
+  }
+
+  function stepsHTML(list) {
+    return '<ol class="guide-steps">' + list.map(function (s) { return "<li>" + s + "</li>"; }).join("") + "</ol>";
+  }
+
+  function tabsHTML(active, panes) {
+    // panes: { ios: html, android: html }
+    return '<div class="guide-tabs" role="tablist">' +
+      '<button type="button" role="tab" data-tab="ios" aria-selected="' + (active === "ios") + '">iPhone・iPad</button>' +
+      '<button type="button" role="tab" data-tab="android" aria-selected="' + (active === "android") + '">Android</button>' +
+      "</div>" +
+      '<div class="guide-pane" data-pane="ios"' + (active === "ios" ? "" : " hidden") + ">" + panes.ios + "</div>" +
+      '<div class="guide-pane" data-pane="android"' + (active === "android" ? "" : " hidden") + ">" + panes.android + "</div>";
+  }
+  function wireTabs(root) {
+    root.querySelectorAll("[data-tab]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var t = b.getAttribute("data-tab");
+        root.querySelectorAll("[data-tab]").forEach(function (x) { x.setAttribute("aria-selected", String(x === b)); });
+        root.querySelectorAll("[data-pane]").forEach(function (p) { p.hidden = p.getAttribute("data-pane") !== t; });
+      });
+    });
+  }
+
+  /* ---------------- ホーム画面に追加（Android / iPhone） ---------------- */
   var deferredPrompt = null;
   window.addEventListener("beforeinstallprompt", function (e) {
     e.preventDefault();
     deferredPrompt = e;
     if (document.body.getAttribute("data-screen") === "home") render(false);
   });
-  window.addEventListener("appinstalled", function () { deferredPrompt = null; });
+  window.addEventListener("appinstalled", function () {
+    deferredPrompt = null;
+    var s = document.getElementById("installSheet");
+    if (s) s.remove();
+    document.body.classList.remove("has-sheet");
+    if (document.body.getAttribute("data-screen") === "home") render(false);
+  });
 
   function isStandalone() {
     return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
   }
-  function installDismissed() {
-    try { return localStorage.getItem("gtore-install-hide") === "1"; } catch (e) { return false; }
-  }
+
+  var HOME_ICON_SVG = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M12 8v6M9 11h6"/><path d="M10.5 18.5h3"/></svg>';
+
+  // ホームの「ホーム画面に追加」ボタン（すでにホーム画面から開いているときは出さない）
   function installCardHTML() {
-    if (isStandalone() || installDismissed()) return "";
-    var ua = navigator.userAgent;
-    var isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    var body;
-    if (deferredPrompt) {
-      body = "<strong>ホーム画面に追加できます</strong>アプリのように、すぐに開けるようになります。" +
-        '<br><button type="button" class="primary" id="installBtn">ホーム画面に追加する</button>';
-    } else if (isIOS) {
-      body = "<strong>ホーム画面に追加しよう</strong>Safariの下にある「共有」ボタン（□に↑）をおして、「ホーム画面に追加」をえらんでください。";
-    } else if (/Android/.test(ua)) {
-      body = "<strong>ホーム画面に追加しよう</strong>右上の「︙」メニューから「ホーム画面に追加」をえらんでください。";
-    } else {
-      return "";
-    }
-    return '<aside class="install-card" id="installCard"><span class="install-body">' + body +
-      '</span><button type="button" class="install-close" id="installClose" aria-label="とじる">×</button></aside>';
+    if (isStandalone()) return "";
+    return '<button type="button" class="qr-open-btn install-open-btn" id="installOpenBtn">' +
+      '<span class="qr-open-icon install-icon" aria-hidden="true">' + HOME_ICON_SVG + "</span>" +
+      '<span class="qr-open-text"><strong>ホーム画面に追加</strong>アプリのように1回タップで開けます</span>' +
+      '<span class="chev" aria-hidden="true">›</span></button>';
   }
   function wireInstallCard() {
-    var btn = document.getElementById("installBtn");
-    if (btn) btn.addEventListener("click", function () {
+    var b = document.getElementById("installOpenBtn");
+    if (b) b.addEventListener("click", openInstallSheet);
+  }
+
+  function openInstallSheet() {
+    var d = deviceInfo();
+    var head = "";
+
+    // LINE などのアプリの中のブラウザでは、ホーム画面に追加できない
+    if (d.inApp) {
+      var ext = location.href + (location.search ? "&" : "?") + "openExternalBrowser=1";
+      head = '<div class="guide-warn"><strong>いまはLINEなどのアプリの中で開いています。</strong>' +
+        "このままではホーム画面に追加できません。" + (d.ios ? "Safari" : "Chrome") + "で開きなおしてください。" +
+        '<div class="guide-btns">' +
+        (d.line ? '<a class="qr-copy" href="' + esc(ext) + '">' + (d.ios ? "Safari" : "Chrome") + "で開く</a>" : "") +
+        '<button type="button" class="qr-copy sub" id="installCopy">URLをコピー</button></div>' +
+        '<p class="guide-small">コピーしたら' + (d.ios ? "Safari" : "Chrome") + "を開いて、上のアドレス欄に貼りつけます。</p></div>";
+    } else if (d.android && deferredPrompt) {
+      head = '<div class="guide-quick"><button type="button" class="qr-copy big" id="installNow">ホーム画面に追加する</button>' +
+        '<p class="guide-small">出てきた画面で「インストール」をおせば完了です。</p></div>';
+    } else if (d.iosOther) {
+      head = '<div class="guide-warn">Safari で開くといちばん確実です。Chrome の場合は、アドレス欄の右にある共有ボタン（□に↑）から「ホーム画面に追加」をえらびます。</div>';
+    }
+
+    var ios = stepsHTML([
+      "<b>Safari</b>でこの画面を開く",
+      "画面の下（または上）にある<b>共有ボタン</b>" + '<span class="key">□に↑</span>' + "をおす<br><span class=\"guide-small\">見つからないときは、右下の<span class=\"key\">…</span>をおすと出てきます</span>",
+      "下にスクロールして<b>「ホーム画面に追加」</b>をおす",
+      "「Webアプリとして開く」が出たら<b>オン</b>のまま、右上の<b>「追加」</b>をおす",
+      "ホーム画面に<b>「Gトレ教材」</b>のアイコンができたら完了"
+    ]);
+    var android = stepsHTML([
+      "<b>Chrome</b>でこの画面を開く",
+      "右上の<span class=\"key\">︙</span>（点が3つ）をおす",
+      "<b>「ホーム画面に追加」</b>（または「アプリをインストール」）をおす",
+      "<b>「インストール」</b>（または「追加」）をおす",
+      "ホーム画面に<b>「Gトレ教材」</b>のアイコンができたら完了"
+    ]);
+
+    var s = openGuideSheet("installSheet", "ホーム画面に追加",
+      '<p class="qr-lead">一度追加すると、次からはアイコンをタップするだけで開けます。</p>' + head +
+      tabsHTML(d.kind === "android" ? "android" : "ios", { ios: ios, android: android }) +
+      '<p class="guide-small guide-foot">一度開いた教材は、電波が弱いときも見られます。</p>');
+    wireTabs(s.el);
+
+    var now = document.getElementById("installNow");
+    if (now) now.addEventListener("click", function () {
       if (!deferredPrompt) return;
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.finally(function () { deferredPrompt = null; render(false); });
+      deferredPrompt.userChoice.finally(function () { deferredPrompt = null; s.close(); render(false); });
     });
-    var close = document.getElementById("installClose");
-    if (close) close.addEventListener("click", function () {
-      try { localStorage.setItem("gtore-install-hide", "1"); } catch (e) {}
-      var c = document.getElementById("installCard");
-      if (c) c.remove();
+    var cp = document.getElementById("installCopy");
+    if (cp) cp.addEventListener("click", function () {
+      var url = appHomeURL();
+      var done = function () { cp.textContent = "コピーしました ✓"; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { fallbackCopy(url); done(); });
+      else { fallbackCopy(url); done(); }
+    });
+  }
+
+  /* ---------------- 教室のプリンターで印刷 ---------------- */
+  // 先生が print.json に「プリンター名」「Wi-Fi名」を書いておくと、生徒の画面にその名前が出ます
+  var PRINT_CFG = null;
+  function loadPrintCfg() {
+    if (PRINT_CFG) return Promise.resolve(PRINT_CFG);
+    return fetch("print.json", { cache: "no-cache" })
+      .then(function (r) { return r.ok ? r.json() : {}; })
+      .catch(function () { return {}; })
+      .then(function (j) {
+        PRINT_CFG = {
+          printer: String(j["プリンター名"] || "").trim(),
+          wifi: String(j["Wi-Fi名"] || "").trim(),
+          note: String(j["ひとこと"] || "").trim()
+        };
+        return PRINT_CFG;
+      });
+  }
+
+  var PRINT_ICON_SVG = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg>';
+
+  var printUrls = [];
+  function clearPrintArea() {
+    printUrls.forEach(function (u) { URL.revokeObjectURL(u); });
+    printUrls = [];
+    var a = document.getElementById("printArea");
+    if (a) a.remove();
+  }
+
+  // えらんだページを、印刷用のきれいな画像にする
+  function buildPrintPages(doc, nums, onProgress) {
+    clearPrintArea();
+    var area = document.createElement("div");
+    area.id = "printArea";
+    area.setAttribute("aria-hidden", "true");
+    document.body.appendChild(area);
+    var chain = Promise.resolve();
+    nums.forEach(function (n, i) {
+      chain = chain.then(function () {
+        onProgress(i + 1, nums.length);
+        return doc.getPage(n);
+      }).then(function (page) {
+        var v1 = page.getViewport({ scale: 1 });
+        // A4を約200dpiで（スマホのメモリにもやさしい大きさ）
+        var scale = Math.min(3, 1654 / Math.min(v1.width, v1.height));
+        var vp = page.getViewport({ scale: scale });
+        var c = document.createElement("canvas");
+        c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+        return page.render({ canvasContext: ctx, viewport: vp }).promise.then(function () {
+          return new Promise(function (ok) { c.toBlob(ok, "image/jpeg", 0.92); });
+        }).then(function (blob) {
+          c.width = c.height = 0;
+          var url = URL.createObjectURL(blob);
+          printUrls.push(url);
+          var box = document.createElement("div");
+          box.className = "print-page" + (v1.width > v1.height ? " landscape" : "");
+          var img = new Image();
+          img.alt = "";
+          box.appendChild(img);
+          area.appendChild(box);
+          return new Promise(function (ok) { img.onload = img.onerror = ok; img.src = url; });
+        });
+      });
+    });
+    return chain;
+  }
+
+  function openPrintSheet() {
+    var task = currentPdfTask;
+    if (!task || !task.doc) return;
+    var doc = task.doc;
+    var n = doc.numPages;
+    var d = deviceInfo();
+
+    loadPrintCfg().then(function (cfg) {
+      if (currentPdfTask !== task) return;
+      var pname = cfg.printer ? "「" + esc(cfg.printer) + "」" : "教室のプリンター";
+      var chips = "";
+      for (var i = 1; i <= n; i++) {
+        chips += '<button type="button" class="pg-chip" data-pg="' + i + '" aria-pressed="true">' + i + "</button>";
+      }
+
+      var ios = stepsHTML([
+        "下の<b>「印刷する」</b>をおす",
+        "<b>「プリンタ」</b>をおして、<b class=\"pname\">" + pname + "</b>をえらぶ",
+        "部数などを確かめて、右上の<b>「プリント」</b>をおす"
+      ]);
+      var android = stepsHTML([
+        "下の<b>「印刷する」</b>をおす",
+        "上の<b>「プリンタを選択」</b>（またはプリンタ名）をおし、<b>「すべてのプリンタ」</b>から<b class=\"pname\">" + pname + "</b>をえらぶ",
+        "<span class=\"key\">プリンタの絵</span>のボタンをおす<br><span class=\"guide-small\">はじめての時は「印刷サービスを使いますか」と出たら「OK」</span>"
+      ]);
+
+      var s = openGuideSheet("printSheet", "教室のプリンターで印刷",
+        '<div class="guide-check">' +
+        "<b>印刷の前に</b>" +
+        (cfg.wifi ? "教室のWi-Fi<b class=\"pname\">「" + esc(cfg.wifi) + "」</b>につながっているか確かめよう。"
+                  : "教室のWi-Fiにつながっているか確かめよう。") +
+        "<span class=\"guide-small\">ほかのWi-Fiやモバイル通信では、教室のプリンターは出てきません。</span></div>" +
+        (cfg.note ? '<p class="guide-note">' + esc(cfg.note) + "</p>" : "") +
+        '<div class="pg-pick"><div class="pg-pick-head"><b>印刷するページ</b>' +
+        '<button type="button" class="pg-all" id="pgAll">すべて外す</button></div>' +
+        '<div class="pg-chips" id="pgChips">' + chips + "</div>" +
+        '<p class="guide-small" id="pgCount"></p></div>' +
+        '<button type="button" class="qr-copy big" id="printGo">印刷する</button>' +
+        '<h3 class="guide-h">印刷画面での操作</h3>' +
+        tabsHTML(d.kind === "android" ? "android" : "ios", { ios: ios, android: android }) +
+        '<details class="guide-more"><summary>プリンターが出てこないとき</summary>' +
+        stepsHTML([
+          "Wi-Fiが教室のものか、もう一度確かめる",
+          "プリンターの電源が入っているか、先生に聞く",
+          "Androidは「設定」→「接続済みのデバイス」（または「接続」）→「印刷」→<b>「デフォルトの印刷サービス」をオン</b>にする",
+          '印刷画面が出ないときは <a href="' + esc(task.material ? task.material.open : "#") + '" target="_blank" rel="noopener">PDFを開いて</a>、共有ボタン（iPhone）か「︙」（Android）から「プリント／印刷」をえらぶ'
+        ]) + "</details>");
+      wireTabs(s.el);
+
+      var chipBox = document.getElementById("pgChips");
+      var allBtn = document.getElementById("pgAll");
+      var count = document.getElementById("pgCount");
+      var go = document.getElementById("printGo");
+      function picked() {
+        return Array.from(chipBox.querySelectorAll(".pg-chip")).filter(function (b) {
+          return b.getAttribute("aria-pressed") === "true";
+        }).map(function (b) { return Number(b.getAttribute("data-pg")); });
+      }
+      function refresh() {
+        var p = picked();
+        count.textContent = p.length === n ? "全部で " + n + " ページ（A4）" : p.length + " ページえらんでいます（全部で " + n + " ページ）";
+        allBtn.textContent = p.length === n ? "すべて外す" : "すべてえらぶ";
+        go.disabled = p.length === 0;
+      }
+      chipBox.addEventListener("click", function (e) {
+        var b = e.target.closest(".pg-chip");
+        if (!b) return;
+        b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true"));
+        refresh();
+      });
+      allBtn.addEventListener("click", function () {
+        var on = picked().length !== n;
+        chipBox.querySelectorAll(".pg-chip").forEach(function (b) { b.setAttribute("aria-pressed", String(on)); });
+        refresh();
+      });
+      refresh();
+
+      go.addEventListener("click", function () {
+        var nums = picked();
+        if (!nums.length) return;
+        go.disabled = true;
+        buildPrintPages(doc, nums, function (i, total) {
+          go.textContent = "じゅんび中… " + i + " / " + total;
+        }).then(function () {
+          s.close();
+          setTimeout(function () { window.print(); }, 60);
+        }).catch(function () {
+          go.disabled = false;
+          go.textContent = "印刷する";
+          clearPrintArea();
+          alert("印刷のじゅんびができませんでした。「プリンターが出てこないとき」の方法をためしてください。");
+        });
+      });
     });
   }
 
