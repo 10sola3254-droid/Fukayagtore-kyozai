@@ -508,12 +508,92 @@
       '<button type="button" class="tool-btn" id="zoomOut" aria-label="小さくする">－</button>' +
       '<button type="button" class="tool-btn" id="zoomIn" aria-label="大きくする">＋</button>' +
       '<button type="button" class="tool-btn print-btn" id="printBtn" aria-label="印刷" disabled>' + PRINT_ICON_SVG + "<span>印刷</span></button>" +
-      '<a class="tool-btn text" href="' + esc(m.open) + '" target="_blank" rel="noopener">別画面</a>' +
+      '<a class="tool-btn text" href="' + esc(m.open) + '" target="_blank" rel="noopener" id="openBtn">別画面</a>' +
+      '<div class="set-row" id="setRow">' +
+      '<div class="set-tabs" id="setTabs" role="tablist" aria-label="教材の種類" hidden></div>' +
+      '<a class="dl-btn" id="dlBtn" href="' + esc(m.src) + '" download="' + esc(dlName(r.topic.title, "")) + '">' +
+      DL_ICON_SVG + "<span>ダウンロード</span></a></div>" +
       "</div>" +
-      '<div class="pdf-pages" id="pdfPages"><div class="viewer-msg" id="pdfMsg"><div class="spinner"></div>読みこみ中…</div><div class="pdf-stack" id="pdfStack"></div></div>';
+      '<div class="pdf-pages" id="pdfPages"></div>';
     document.getElementById("printBtn").addEventListener("click", openPrintSheet);
-    openPdf(m, label);
+
+    var topic = r.topic;
+    loadSets(m).then(function (sets) {
+      if (routeFromURL().topic !== topic) return;   // もう別の画面に移っている
+      var want = new URLSearchParams(location.search).get("set");
+      if (sets) {
+        var tabs = document.getElementById("setTabs");
+        var all = [{ key: "", name: "全部", desc: "まとめ・A問題・B問題すべて" }].concat(sets);
+        tabs.innerHTML = all.map(function (x) {
+          return '<button type="button" role="tab" data-set="' + esc(x.key) + '" title="' + esc(x.desc) + '">' + esc(x.name) + "</button>";
+        }).join("");
+        tabs.hidden = false;
+        tabs.addEventListener("click", function (e) {
+          var b = e.target.closest("[data-set]");
+          if (b) choose(b.getAttribute("data-set"), true);
+        });
+      }
+      // A問題・B問題に分けていない教材は、この行を出さない（ダウンロードは理科の分けた教材だけ）
+      if (!sets) document.getElementById("setRow").remove();
+      var start = sets && sets.some(function (x) { return x.key === want; }) ? want : "";
+      choose(start, false);
+
+      function choose(key, fromTap) {
+        var set = sets && sets.filter(function (x) { return x.key === key; })[0];
+        var mm = set ? { type: "pdf", src: m.src.replace(/[^/]+$/, encodeURI(set.file)), open: m.open.replace(/[^/]+$/, encodeURI(set.file)) } : m;
+        if (sets) {
+          document.querySelectorAll("#setTabs [data-set]").forEach(function (b) {
+            b.setAttribute("aria-selected", String(b.getAttribute("data-set") === key));
+          });
+          var q = new URLSearchParams(location.search);
+          if (key) q.set("set", key); else q.delete("set");
+          history.replaceState(history.state, "", location.pathname + "?" + q.toString());
+        }
+        var dl = document.getElementById("dlBtn");
+        if (dl) {
+          dl.href = mm.src;
+          dl.setAttribute("download", dlName(topic.title, set ? set.name : ""));
+          dl.setAttribute("aria-label", (set ? set.name : "全部") + "をダウンロード");
+        }
+        document.getElementById("openBtn").href = mm.open;
+        if (fromTap && currentPdfTask && currentPdfTask.material && currentPdfTask.material.src === mm.src) return;
+
+        // 前の教材を片づけてから開きなおす
+        stopPdf();
+        var oldBar = document.getElementById("quizBar");
+        if (oldBar) oldBar.remove();
+        ["zoomIn", "zoomOut"].forEach(function (id) {
+          var b = document.getElementById(id);
+          b.replaceWith(b.cloneNode(true));
+        });
+        document.getElementById("printBtn").disabled = true;
+        document.getElementById("pgInfo").innerHTML = label;
+        document.getElementById("pdfPages").innerHTML =
+          '<div class="viewer-msg" id="pdfMsg"><div class="spinner"></div>読みこみ中…</div><div class="pdf-stack" id="pdfStack"></div>';
+        if (fromTap) window.scrollTo(0, 0);
+        openPdf(mm, label);
+      }
+    });
   }
+
+  /* ---------------- 理科：まとめ＋A問題／まとめ＋B問題 の切りかえとダウンロード ---------------- */
+  // PDFと同じ名前の .sets.json があるときだけ「全部／A問題／B問題」のボタンが出ます（tools/split_rika.py で作成）
+  function loadSets(m) {
+    var url = m.src.replace(/\.pdf$/i, ".sets.json");
+    if (url === m.src) return Promise.resolve(null);
+    return fetch(url, { cache: "no-cache" })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (j) { return j && j.sets && j.sets.length ? j.sets : null; })
+      .catch(function () { return null; });
+  }
+
+  function dlName(title, setName) {
+    var t = String(title || "教材").replace(/[\\/:*?"<>|]/g, "・").trim();
+    return "Gトレ_" + t + (setName ? "（" + setName + "）" : "") + ".pdf";
+  }
+
+  var DL_ICON_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
 
   function sizeDriveFrame() {
     var f = view.querySelector(".drive-frame");

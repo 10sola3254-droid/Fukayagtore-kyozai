@@ -674,3 +674,21 @@ body.has-sheet { overflow: hidden; }
   display: flex; flex-direction: column; gap: 3px;
 }
 .nup-mark i { flex: 1; border-radius: 2px; background: #f3c98b; }
+
+/* ===== 理科：全部／A問題／B問題 の切りかえ と ダウンロード ===== */
+.viewer-tools { flex-wrap: wrap; }
+.set-row { flex: 1 0 100%; display: flex; align-items: center; gap: 8px; }
+.set-tabs { flex: 1; min-width: 0; display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: #eef0f4; }
+.set-tabs[hidden] { display: none; }
+.set-tabs button {
+  flex: 1; min-height: 40px; padding: 0 6px; border: 0; border-radius: 10px; background: transparent;
+  font-size: 15px; font-weight: 800; color: var(--ink-soft); cursor: pointer; white-space: nowrap;
+}
+.set-tabs button[aria-selected="true"] { background: var(--c); color: #fff; box-shadow: 0 1px 3px rgba(20,30,60,.2); }
+.dl-btn {
+  flex: none; margin-left: auto; min-height: 44px; padding: 0 12px; border-radius: 12px;
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--c-soft); color: var(--c); font-size: 14px; font-weight: 800; text-decoration: none;
+}
+.set-tabs:not([hidden]) + .dl-btn span { display: none; }   /* 切りかえボタンがあるときはアイコンだけ */
+.set-tabs:not([hidden]) + .dl-btn { min-width: 48px; justify-content: center; }

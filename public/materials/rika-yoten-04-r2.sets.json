@@ -1,0 +1,18 @@
+{
+ "sets": [
+  {
+   "key": "A",
+   "name": "A問題",
+   "desc": "解説まとめ ＋ A問題 ＋ 解答",
+   "file": "rika-yoten-04-r2-A.pdf",
+   "pages": 6
+  },
+  {
+   "key": "B",
+   "name": "B問題",
+   "desc": "解説まとめ ＋ B問題 ＋ 解説",
+   "file": "rika-yoten-04-r2-B.pdf",
+   "pages": 6
+  }
+ ]
+}
