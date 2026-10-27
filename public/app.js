@@ -1116,7 +1116,9 @@
         PRINT_CFG = {
           printer: String(j["プリンター名"] || "").trim(),
           wifi: String(j["Wi-Fi名"] || "").trim(),
-          note: String(j["ひとこと"] || "").trim()
+          note: String(j["ひとこと"] || "").trim(),
+          // 割り付け：書かない or "2in1" → 2in1（1枚に2ページ）／ "1in1" → 1枚に1ページ
+          nup: /^\s*1\s*in\s*1\s*$/i.test(String(j["割り付け"] || "")) ? 1 : 2
         };
         return PRINT_CFG;
       });
@@ -1134,34 +1136,85 @@
   }
 
   // えらんだページを、印刷用のきれいな画像にする
-  function buildPrintPages(doc, nums, onProgress) {
+  // 1ページ分を、指定の大きさにおさまるように描いた canvas にする
+  function renderPageCanvas(doc, n, boxW, boxH) {
+    return doc.getPage(n).then(function (page) {
+      var v1 = page.getViewport({ scale: 1 });
+      var scale = Math.min(boxW / v1.width, boxH / v1.height);
+      var vp = page.getViewport({ scale: scale });
+      var c = document.createElement("canvas");
+      c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+      var ctx = c.getContext("2d");
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+      return page.render({ canvasContext: ctx, viewport: vp }).promise.then(function () { return c; });
+    });
+  }
+
+  // えらんだページを、印刷用の画像（A4たて1枚＝1画像）にする
+  //  nup=2 … 2in1：A4よこに2ページならべた形を、A4たての紙に向きを変えて1枚にする
+  //           （スマホ・プリンターの設定に関係なく、だれが印刷しても必ず2in1になる）
+  //  nup=1 … 1ページずつ
+  var SHEET_W = 1654, SHEET_H = 2339;   // A4を約200dpi（スマホのメモリにもやさしい大きさ）
+  function buildPrintPages(doc, nums, nup, onProgress) {
     clearPrintArea();
     var area = document.createElement("div");
     area.id = "printArea";
     area.setAttribute("aria-hidden", "true");
     document.body.appendChild(area);
+
+    var sheets = [];
+    for (var i = 0; i < nums.length; i += nup) sheets.push(nums.slice(i, i + nup));
+    var done = 0;
     var chain = Promise.resolve();
-    nums.forEach(function (n, i) {
+
+    sheets.forEach(function (group) {
       chain = chain.then(function () {
-        onProgress(i + 1, nums.length);
-        return doc.getPage(n);
-      }).then(function (page) {
-        var v1 = page.getViewport({ scale: 1 });
-        // A4を約200dpiで（スマホのメモリにもやさしい大きさ）
-        var scale = Math.min(3, 1654 / Math.min(v1.width, v1.height));
-        var vp = page.getViewport({ scale: scale });
-        var c = document.createElement("canvas");
-        c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
-        var ctx = c.getContext("2d");
-        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
-        return page.render({ canvasContext: ctx, viewport: vp }).promise.then(function () {
-          return new Promise(function (ok) { c.toBlob(ok, "image/jpeg", 0.92); });
+        var sheet = document.createElement("canvas");
+        sheet.width = SHEET_W; sheet.height = SHEET_H;
+        var sx = sheet.getContext("2d");
+        sx.fillStyle = "#fff"; sx.fillRect(0, 0, SHEET_W, SHEET_H);
+
+        var inner = Promise.resolve();
+        if (nup === 1) {
+          inner = inner.then(function () {
+            onProgress(++done, nums.length);
+            return renderPageCanvas(doc, group[0], SHEET_W, SHEET_H);
+          }).then(function (c) {
+            sx.drawImage(c, (SHEET_W - c.width) / 2, (SHEET_H - c.height) / 2);
+            c.width = c.height = 0;
+          });
+        } else {
+          // A4よこ（2339×1654）を左右半分ずつに分けて、それぞれに1ページ
+          var LW = SHEET_H, LH = SHEET_W, gap = 40, pad = 30;
+          var halfW = (LW - pad * 2 - gap) / 2, halfH = LH - pad * 2;
+          // よこの絵を時計まわりに90°回して、たての紙に描く（1ページ目が上、2ページ目が下）
+          sx.translate(SHEET_W, 0);
+          sx.rotate(Math.PI / 2);
+          group.forEach(function (n, k) {
+            inner = inner.then(function () {
+              onProgress(++done, nums.length);
+              return renderPageCanvas(doc, n, halfW, halfH);
+            }).then(function (c) {
+              var x0 = pad + k * (halfW + gap);
+              sx.drawImage(c, x0 + (halfW - c.width) / 2, pad + (halfH - c.height) / 2);
+              c.width = c.height = 0;
+            });
+          });
+          // まん中に細い区切り線
+          inner = inner.then(function () {
+            sx.strokeStyle = "#d0d0d0"; sx.lineWidth = 2; sx.setLineDash([10, 10]);
+            sx.beginPath(); sx.moveTo(LW / 2, pad); sx.lineTo(LW / 2, LH - pad); sx.stroke();
+          });
+        }
+
+        return inner.then(function () {
+          return new Promise(function (ok) { sheet.toBlob(ok, "image/jpeg", 0.92); });
         }).then(function (blob) {
-          c.width = c.height = 0;
+          sheet.width = sheet.height = 0;
           var url = URL.createObjectURL(blob);
           printUrls.push(url);
           var box = document.createElement("div");
-          box.className = "print-page" + (v1.width > v1.height ? " landscape" : "");
+          box.className = "print-page";
           var img = new Image();
           img.alt = "";
           box.appendChild(img);
@@ -1170,7 +1223,7 @@
         });
       });
     });
-    return chain;
+    return chain.then(function () { return sheets.length; });
   }
 
   function openPrintSheet() {
@@ -1206,6 +1259,8 @@
                   : "教室のWi-Fiにつながっているか確かめよう。") +
         "<span class=\"guide-small\">ほかのWi-Fiやモバイル通信では、教室のプリンターは出てきません。</span></div>" +
         (cfg.note ? '<p class="guide-note">' + esc(cfg.note) + "</p>" : "") +
+        (cfg.nup === 2 ? '<p class="guide-nup"><span class="nup-mark" aria-hidden="true"><i></i><i></i></span>' +
+          "<span><b>2in1</b>（1枚の紙に2ページ）で印刷されます。<span class=\"guide-small\">印刷画面で何も変えなくてOK。</span></span></p>" : "") +
         '<div class="pg-pick"><div class="pg-pick-head"><b>印刷するページ</b>' +
         '<button type="button" class="pg-all" id="pgAll">すべて外す</button></div>' +
         '<div class="pg-chips" id="pgChips">' + chips + "</div>" +
@@ -1233,7 +1288,9 @@
       }
       function refresh() {
         var p = picked();
-        count.textContent = p.length === n ? "全部で " + n + " ページ（A4）" : p.length + " ページえらんでいます（全部で " + n + " ページ）";
+        var paper = Math.ceil(p.length / cfg.nup);
+        count.textContent = (p.length === n ? "全部で " + n + " ページ" : p.length + " ページえらんでいます（全部で " + n + " ページ）") +
+          " → " + (cfg.nup === 2 ? "2in1で " : "") + "A4用紙 " + paper + " 枚";
         allBtn.textContent = p.length === n ? "すべて外す" : "すべてえらぶ";
         go.disabled = p.length === 0;
       }
@@ -1254,7 +1311,7 @@
         var nums = picked();
         if (!nums.length) return;
         go.disabled = true;
-        buildPrintPages(doc, nums, function (i, total) {
+        buildPrintPages(doc, nums, cfg.nup, function (i, total) {
           go.textContent = "じゅんび中… " + i + " / " + total;
         }).then(function () {
           s.close();

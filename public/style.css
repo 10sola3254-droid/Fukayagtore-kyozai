@@ -658,5 +658,19 @@ body.has-sheet { overflow: hidden; }
   }
   .print-page:last-child { break-after: auto; page-break-after: auto; }
   .print-page img { display: block; max-width: 100%; max-height: 100%; }
-  .print-page.landscape img { transform: rotate(90deg); max-width: 296mm; max-height: 210mm; }
 }
+
+/* 2in1 の案内 */
+.guide-nup {
+  display: flex; align-items: center; gap: 12px;
+  margin: 0 0 14px; padding: 10px 14px; border-radius: 14px;
+  background: #fff7e8; box-shadow: inset 0 0 0 1px #f5d9a8;
+  font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.5;
+}
+.guide-nup b { color: #b45309; font-size: 16px; }
+.nup-mark {
+  flex: none; width: 34px; height: 46px; padding: 4px; border-radius: 4px;
+  background: #fff; box-shadow: 0 0 0 1.5px #b45309;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.nup-mark i { flex: 1; border-radius: 2px; background: #f3c98b; }
