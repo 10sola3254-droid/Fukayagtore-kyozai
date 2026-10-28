@@ -1,0 +1,6 @@
+{
+ "sets": [
+  {"key": "W", "name": "世界の雨温図", "desc": "考え方 → 問題 → 解答・解説（世界）", "file": "shakai-uonzu-W.pdf", "pages": 7, "print": true},
+  {"key": "J", "name": "日本の雨温図", "desc": "考え方 → 問題 → 解答・解説（日本）", "file": "shakai-uonzu-J.pdf", "pages": 9, "print": true}
+ ]
+}
