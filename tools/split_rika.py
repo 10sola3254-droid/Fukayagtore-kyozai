@@ -25,11 +25,13 @@ import sys
 from pypdf import PdfReader, PdfWriter
 
 HEAD = re.compile(r"^(?:[AB])?([AB])問題(解答|解説)?")
+# 新しい形：帯の左に単元タイトル、右に「A 問題①」「B 問題 解説②」など（例 27〜30）
+HEAD2 = re.compile(r"^\d{1,2}[^0-9]{2,40}?([AB])問題(解答|解説)?")
 
 
 def classify(page):
     text = re.sub(r"\s+", "", page.extract_text() or "")
-    m = HEAD.match(text[:40])
+    m = HEAD.match(text[:40]) or HEAD2.match(text[:60])
     if not m:
         return "m"
     return m.group(1) + ("ans" if m.group(2) else "")
