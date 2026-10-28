@@ -693,3 +693,6 @@ body.has-sheet { overflow: hidden; }
 }
 .set-tabs:not([hidden]) + .dl-btn span { display: none; }   /* 切りかえボタンがあるときはアイコンだけ */
 .set-tabs:not([hidden]) + .dl-btn { min-width: 48px; justify-content: center; }
+
+/* Android の自動確認「ホーム画面に追加しますか？」 */
+.ask-btns { display: grid; gap: 10px; margin: 16px 0 10px; }

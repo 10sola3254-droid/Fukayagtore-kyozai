@@ -338,6 +338,7 @@
     });
     document.getElementById("qrOpenBtn").addEventListener("click", openQrSheet);
     wireInstallCard();
+    maybeAutoAsk();
   }
 
   /* ---------------- ほかの端末で開く（QRコード） ---------------- */
@@ -1102,7 +1103,7 @@
   window.addEventListener("beforeinstallprompt", function (e) {
     e.preventDefault();
     deferredPrompt = e;
-    if (document.body.getAttribute("data-screen") === "home") render(false);
+    if (document.body.getAttribute("data-screen") === "home") { render(false); maybeAutoAsk(); }
   });
   window.addEventListener("appinstalled", function () {
     deferredPrompt = null;
@@ -1118,6 +1119,50 @@
 
   var HOME_ICON_SVG = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
     '<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M12 8v6M9 11h6"/><path d="M10.5 18.5h3"/></svg>';
+
+  // Android：初めて開いたとき、自動で「ホーム画面に追加しますか？」を出す
+  // 「あとで」をえらんだら3日間は出さない（ホームの「ホーム画面に追加」ボタンからはいつでも追加できる）
+  var ASK_KEY = "gtore-install-ask";
+  var ASK_WAIT = 3 * 24 * 60 * 60 * 1000;
+  var askTimer = null;
+  function maybeAutoAsk() {
+    if (!deferredPrompt || isStandalone() || askTimer) return;
+    var d = deviceInfo();
+    if (!d.android || d.inApp) return;
+    try {
+      var last = Number(localStorage.getItem(ASK_KEY) || 0);
+      if (last && Date.now() - last < ASK_WAIT) return;
+    } catch (e) {}
+    askTimer = setTimeout(function () {
+      askTimer = null;
+      if (!deferredPrompt || document.body.getAttribute("data-screen") !== "home") return;
+      if (document.body.classList.contains("has-sheet")) return; // ほかの画面が開いているときは出さない
+      openAutoAsk();
+    }, 800);
+  }
+  function openAutoAsk() {
+    var s = openGuideSheet("installAsk", "ホーム画面に追加しますか？",
+      '<p class="qr-lead">追加すると、次からはアイコンをタップするだけで「Gトレ教材」が開けます。</p>' +
+      '<div class="ask-btns">' +
+      '<button type="button" class="qr-copy big" id="askYes">はい</button>' +
+      '<button type="button" class="qr-copy sub big" id="askLater">あとで</button></div>' +
+      '<p class="guide-small">次の画面で「インストール」をおせば完了です。</p>');
+    function later() { try { localStorage.setItem(ASK_KEY, String(Date.now())); } catch (e) {} }
+    s.el.querySelectorAll("[data-close]").forEach(function (b) { b.addEventListener("click", later); });
+    s.el.addEventListener("click", function (e) { if (e.target === s.el) later(); });
+    document.getElementById("askLater").addEventListener("click", function () { later(); s.close(); });
+    document.getElementById("askYes").addEventListener("click", function () {
+      if (!deferredPrompt) { s.close(); return; }
+      var dp = deferredPrompt;
+      deferredPrompt = null;
+      s.close();
+      dp.prompt();
+      dp.userChoice.then(function (r) {
+        if (!r || r.outcome !== "accepted") later();
+      }).catch(later).then(function () { render(false); });
+    });
+    document.getElementById("askYes").focus();
+  }
 
   // ホームの「ホーム画面に追加」ボタン（すでにホーム画面から開いているときは出さない）
   function installCardHTML() {
