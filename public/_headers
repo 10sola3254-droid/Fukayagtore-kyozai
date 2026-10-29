@@ -4,3 +4,5 @@
   Cache-Control: no-cache
 /print.json
   Cache-Control: no-cache
+/*
+  X-Robots-Tag: noindex, nofollow
