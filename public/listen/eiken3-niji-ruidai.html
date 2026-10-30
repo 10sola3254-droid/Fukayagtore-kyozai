@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>英検３級二次試験対策 類題</title>
+<style>
+:root { --blue:#1F4E79; --red:#C62828; --green:#2E7D32; --orange:#E65100; --ink:#1d1d1d; --bg:#fff; --soft:#f3f7fb; --card:#fff; --line:#cfd8e3; --hint:#fff8e1; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --ink:#eee; --bg:#15191e; --soft:#1e2a36; --card:#1b2129; --line:#3a4654; --blue:#8fb8e0; --green:#7cc47f; --red:#ff8a80; --orange:#ffb74d; --hint:#3a3313; }
+}
+:root[data-theme="dark"] { --ink:#eee; --bg:#15191e; --soft:#1e2a36; --card:#1b2129; --line:#3a4654; --blue:#8fb8e0; --green:#7cc47f; --red:#ff8a80; --orange:#ffb74d; --hint:#3a3313; }
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+html, body { margin:0; padding:0; }
+body { background:var(--bg); color:var(--ink); font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif; line-height:1.6; -webkit-text-size-adjust:100%; }
+.wrap { max-width:720px; margin:0 auto; padding:12px 16px 48px; }
+h1 { font-size:21px; color:var(--red); margin:6px 0 2px; }
+.sub { font-size:13px; opacity:.85; margin:0 0 10px; }
+button { font:inherit; cursor:pointer; color:inherit; }
+.btn { border:1.5px solid var(--blue); background:var(--card); color:var(--blue); border-radius:10px; padding:8px 14px; min-height:44px; min-width:44px; font-weight:700; }
+.btn.main { background:#1F4E79; border-color:#1F4E79; color:#fff; }
+.btn.go { background:#C62828; border-color:#C62828; color:#fff; font-size:18px; padding:12px 18px; width:100%; }
+.btn[aria-pressed="true"] { background:#1F4E79; border-color:#1F4E79; color:#fff; }
+.btn:disabled { opacity:.4; cursor:default; }
+.days { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:8px 0 4px; }
+.days .btn { padding:6px 4px; font-size:15px; }
+.days .btn small { display:block; font-size:10px; font-weight:400; line-height:1.2; }
+.opts { display:flex; flex-wrap:wrap; gap:6px 16px; margin:10px 0; font-size:14px; }
+.opts label { display:flex; align-items:center; gap:6px; min-height:36px; }
+.opts input { width:20px; height:20px; accent-color:#1F4E79; }
+.howto { background:var(--soft); border-radius:10px; padding:8px 12px; font-size:14px; margin:8px 0; }
+.howto p { margin:3px 0; }
+/* 本番画面 */
+#stage { display:none; }
+.phase { display:flex; gap:4px; margin:4px 0 10px; }
+.phase span { flex:1; text-align:center; font-size:11px; padding:3px 0; border-radius:4px; background:var(--soft); opacity:.6; }
+.phase span.on { background:#C62828; color:#fff; opacity:1; font-weight:700; }
+.phase span.done { opacity:.9; }
+.box { border:1.5px solid var(--line); border-radius:12px; background:var(--card); padding:12px; margin:8px 0; }
+.who { display:inline-block; font-size:12px; font-weight:700; color:#fff; border-radius:4px; padding:0 8px; margin-right:6px; vertical-align:2px; }
+.who.i { background:#1565c0; } .who.y { background:#E65100; }
+.speaking { font-size:15px; min-height:28px; }
+.speaking .wave { display:inline-block; width:10px; height:10px; border-radius:50%; background:#1565c0; margin-right:6px; animation:pulse 1s infinite; vertical-align:0; }
+@keyframes pulse { 0%,100%{ opacity:.25 } 50%{ opacity:1 } }
+.qtext { font-size:16px; font-weight:700; margin-top:4px; }
+.your { background:var(--hint); border-radius:8px; padding:8px 10px; margin-top:8px; font-size:15px; }
+.your .en { font-weight:700; font-size:17px; }
+.timer { margin-top:10px; }
+.bar { height:12px; border-radius:6px; background:var(--soft); overflow:hidden; }
+.bar i { display:block; height:100%; width:0; background:#E65100; transition:width .2s linear; }
+.tlabel { font-size:13px; margin-top:3px; display:flex; justify-content:space-between; }
+.ctrl { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+.yn { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+.yn .btn { font-size:17px; }
+.cardimg { text-align:center; }
+.cardimg img { max-width:100%; border:1px solid var(--line); border-radius:6px; background:#fff; }
+.cardback { border:2px dashed var(--line); border-radius:10px; padding:28px 10px; text-align:center; font-size:15px; opacity:.85; }
+.big { font-size:44px; font-weight:800; text-align:center; color:#E65100; font-variant-numeric:tabular-nums; }
+/* 結果 */
+#result { display:none; }
+h2 { font-size:17px; color:var(--blue); border-left:5px solid var(--blue); padding-left:8px; margin:18px 0 6px; }
+.relist .row { display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--line); padding:6px 0; }
+.relist .row .t { flex:1; font-size:14px; }
+.small { font-size:13px; opacity:.85; }
+.ab { border:1.5px solid var(--line); border-radius:10px; padding:8px 10px; margin:8px 0; background:var(--card); }
+.qh { display:flex; align-items:center; gap:8px; }
+.no { font-weight:800; color:#fff; background:#C62828; border-radius:12px; padding:0 10px; }
+.btn.sm { min-height:36px; min-width:36px; padding:2px 10px; font-size:13px; }
+.qe { font-size:14px; margin:4px 0; }
+.psg { font-size:13.5px; background:var(--soft); border-radius:6px; padding:6px 8px; margin:4px 0; line-height:1.7; }
+.psg mark { background:#fff176; color:#1d1d1d; }
+.cj { color:#C62828; font-size:15px; }
+.al { display:flex; gap:8px; align-items:flex-start; background:var(--hint); border-radius:8px; padding:6px 8px; margin:6px 0; }
+.kana { font-size:11.5px; color:#1565c0; }
+.en2 { font-size:17px; font-weight:700; }
+.ja2 { font-size:13px; opacity:.85; }
+.pt { font-size:13px; border-left:4px solid #E65100; padding-left:8px; margin-top:4px; }
+.yn2 { font-size:14px; margin-top:8px; }
+.wt { border-collapse:collapse; width:100%; font-size:14px; }
+.wt td { border-bottom:1px solid var(--line); padding:5px 4px; }
+.wt .we { font-weight:700; } .wt .wk { color:#1565c0; font-size:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div id="home">
+  <h1>英検３級二次試験対策 類題</h1>
+  <p class="sub">面接官の声で、本番と同じ流れで練習します（入室 → 黙読 → 音読 → 質問 No.1〜5 → 退室）。<br>プリントの Day1〜7 と同じ形の新しい問題です。</p>
+  <div class="howto">
+    <p>① 類題をえらぶ　② 「本番スタート」をおす</p>
+    <p>③ 面接官の声が流れたら、<b>声に出して英語で答える</b></p>
+    <p>④ 答えたら「次へ」。時間が来ると自動で進みます</p>
+    <p>聞き取れないときは「もう一度」（本番では Could you repeat again? と言う）</p>
+  </div>
+  <div class="days" id="days"></div>
+  <div class="opts">
+    <label><input type="checkbox" id="optHint" checked>あいさつのヒントを出す</label>
+    <label><input type="checkbox" id="optQ">質問の英文を表示する</label>
+    <label><input type="checkbox" id="optAuto" checked>時間が来たら自動で次へ</label>
+    <label><input type="checkbox" id="optSlow">ゆっくり話す</label>
+  </div>
+  <button class="btn go" id="startBtn">本番スタート（類題 1）</button>
+  <p class="small" style="margin-top:8px">音が出るようにして使ってください（マナーモードだと音が出ないことがあります）。</p>
+</div>
+
+<div id="stage">
+  <div class="phase" id="phase"></div>
+  <div class="box">
+    <div class="speaking" id="speaking"></div>
+    <div class="qtext" id="qtext"></div>
+    <div class="your" id="your" hidden></div>
+    <div class="yn" id="yn" hidden>
+      <button class="btn main" id="ynYes">Yes と答えた</button>
+      <button class="btn main" id="ynNo">No と答えた</button>
+    </div>
+    <div class="timer" id="timer" hidden>
+      <div class="big" id="bigCount" hidden></div>
+      <div class="bar"><i id="barFill"></i></div>
+      <div class="tlabel"><span id="tlabelL"></span><span id="tlabelR"></span></div>
+    </div>
+    <div class="ctrl">
+      <button class="btn" id="againBtn">もう一度</button>
+      <button class="btn main" id="nextBtn">次へ</button>
+    </div>
+  </div>
+  <div id="cardArea"></div>
+  <p style="text-align:center;margin-top:14px"><button class="btn" id="quitBtn">やめる</button></p>
+</div>
+
+<div id="result">
+  <h1 id="resTitle">おつかれさま！</h1>
+  <p class="sub">▶ で質問と答えの例が聞けます。声に出してまねしよう。</p>
+  <h2>答えの例と解説</h2>
+  <div id="ansBox"></div>
+  <h2>重要語句</h2>
+  <div id="wordBox"></div>
+  <h2>お手本の音読</h2>
+  <p class="small">本番では自分で読みます。読み方の確認に使おう。</p>
+  <div class="relist" id="model"></div>
+  <h2>問題カード</h2>
+  <div class="cardimg"><img id="resCard" alt="問題カード"></div>
+  <div class="ctrl" style="margin-top:14px">
+    <button class="btn" id="homeBtn">類題をえらぶ</button>
+    <button class="btn main" id="retryBtn">もう一度本番</button>
+  </div>
+</div>
+
+</div>
+<script>
+var DAYS = {"1": {"title": "Cooking at Home", "q": ["Please look at the passage. Why do many young people try to cook at home?", "Please look at the picture. Where is the cat?", "Please look at the boy. What is he going to do?", "What do you usually eat for breakfast?", "Do you often help your family at home?"], "yes": "tellmore", "no": null, "yesText": "Please tell me more.", "noText": "What do you like to do on weekends?"}, "2": {"title": "Libraries", "q": ["Please look at the passage. Why do many students go to libraries after school?", "Please look at the picture. How many books are there on the table?", "Please look at the man with a cap. What is he doing?", "What subject do you like the best?", "Have you ever been to a zoo?"], "yes": "tellmore", "no": null, "yesText": "Please tell me more.", "noText": "What do you want to do this summer?"}, "3": {"title": "Riding Bicycles", "q": ["Please look at the passage. What do some people enjoy doing on weekends?", "Please look at the picture. Where is the dog?", "Please look at the girl. What is she going to do?", "How do you usually come to school?", "Do you like sports?"], "yes": null, "no": null, "yesText": "What sport do you like?", "noText": "What do you like to do in your free time?"}, "4": {"title": "Bakeries", "q": ["Please look at the passage. Why do many people buy bread at bakeries for breakfast?", "Please look at the picture. How many cakes are there in the showcase?", "Please look at the man with a hat. What is he holding?", "What did you have for breakfast this morning?", "Do you have any brothers or sisters?"], "yes": "tellmore", "no": null, "yesText": "Please tell me more.", "noText": "What do you like to do with your friends?"}, "5": {"title": "Winter Fun", "q": ["Please look at the passage. Why can people go skiing in some places in Japan?", "Please look at the picture. What is the boy making?", "Please look at the girl. What is she going to do?", "What season do you like the best?", "Do you like cold weather?"], "yes": "tellmore", "no": "whynot", "yesText": "Please tell me more.", "noText": "Why not?"}};
+var ANS = {"1": {"q": ["Please look at the passage. Why do many young people try to cook at home?", "Please look at the picture. Where is the cat?", "Please look at the boy. What is he going to do?", "What do you usually eat for breakfast?", "Do you often help your family at home?"], "a": [{"a": "Because they want to eat healthy food.", "kana": "ビコーズ ゼイ ウォント トゥ イート ヘルシー フード", "ja": "健康的な食べ物を食べたいからです。", "pt": "Why の質問 → Because で答える。答えは so の前。many young people は they にかえる。"}, {"a": "It is under the table.", "kana": "イット イズ アンダー ザ テーブル", "ja": "テーブルの下にいます。", "pt": "Where の質問 → 場所で答える。the cat は It にかえる。under ～＝～の下に。"}, {"a": "He is going to wash the dishes.", "kana": "ヒー イズ ゴーイング トゥ ウォッシュ ザ ディッシズ", "ja": "お皿を洗うつもりです。", "pt": "吹き出しの中を見る。What is he going to do? → He is going to ＋動詞の原形 ～."}, {"a": "I usually eat rice and miso soup.", "kana": "アイ ユージュアリー イート ライス アンド ミソ スープ", "ja": "ふだんはご飯とみそ汁を食べます。", "pt": "自分のことを答える。I usually eat ～. の形でOK。"}, {"yes": "Yes, I do.", "ya": "I often wash the dishes after dinner.", "ykana": "イエス アイ ドゥー。アイ オーフン ウォッシュ ザ ディッシズ アフター ディナー", "yja": "夕食のあとによくお皿を洗います。", "no": "No, I don't.", "na": "I like to play soccer with my friends.", "nkana": "ノー アイ ドント。アイ ライク トゥ プレイ サッカー ウィズ マイ フレンズ", "nja": "友だちとサッカーをするのが好きです。", "pt": "まず Yes, I do. / No, I don't. と答える。そのあとの質問にも1文で答える。"}], "words": [["useful", "ユースフル", "役に立つ"], ["skill", "スキル", "技術"], ["young", "ヤング", "若い"], ["healthy", "ヘルシー", "健康的な"], ["try to ～", "トライ トゥ", "～しようとする"], ["weekend", "ウィーケンド", "週末"], ["under ～", "アンダー", "～の下に"], ["wash the dishes", "ウォッシュ ザ ディッシズ", "皿を洗う"], ["breakfast", "ブレックファスト", "朝食"], ["help", "ヘルプ", "手伝う"]], "passage": "Cooking is a useful skill. Many young people want to eat healthy food, so they try to cook at home. Some people also enjoy cooking with their families on weekends.", "passage_ja": "料理は役に立つ技術です。多くの若い人たちは健康的な食べ物を食べたいので、家で料理をしようとします。週末に家族といっしょに料理を楽しむ人もいます。", "mark": ["so", "Many young people want to eat healthy food,"]}, "2": {"q": ["Please look at the passage. Why do many students go to libraries after school?", "Please look at the picture. How many books are there on the table?", "Please look at the man with a cap. What is he doing?", "What subject do you like the best?", "Have you ever been to a zoo?"], "a": [{"a": "Because they want a quiet place to study.", "kana": "ビコーズ ゼイ ウォント ア クワイエット プレイス トゥ スタディ", "ja": "勉強するための静かな場所がほしいからです。", "pt": "Why → Because ～. 答えは so の前。many students は they にかえる。"}, {"a": "There are three books.", "kana": "ゼア アー スリー ブックス", "ja": "3冊あります。", "pt": "How many ～ are there? → There are ＋数＋名詞の複数形. 本の数を1冊ずつ数える。"}, {"a": "He is using a computer.", "kana": "ヒー イズ ユージング ア コンピューター", "ja": "コンピューターを使っています。", "pt": "What is he doing? → 今していること。He is ＋～ing ～. use は e をとって using。"}, {"a": "I like English the best.", "kana": "アイ ライク イングリッシュ ザ ベスト", "ja": "英語がいちばん好きです。", "pt": "I like ～ the best. の形。教科：math・science・P.E.・music など。"}, {"yes": "Yes, I have.", "ya": "I went to Ueno Zoo with my family last year.", "ykana": "イエス アイ ハヴ。アイ ウェント トゥ ウエノ ズー ウィズ マイ ファミリー ラスト イヤー", "yja": "去年、家族と上野動物園に行きました。", "no": "No, I haven't.", "na": "I want to go swimming in the sea.", "nkana": "ノー アイ ハヴント。アイ ウォント トゥ ゴー スウィミング イン ザ シー", "nja": "海に泳ぎに行きたいです。", "pt": "Have you ever ～? → Yes, I have. / No, I haven't. で答える。行ったときのことは過去形（went）で。"}], "words": [["library", "ライブラリー", "図書館"], ["place", "プレイス", "場所"], ["quiet", "クワイエット", "静かな"], ["after school", "アフター スクール", "放課後"], ["borrow", "バロウ", "借りる"], ["How many ～?", "ハウ メニー", "いくつの～"], ["cap", "キャップ", "（つばのある）ぼうし"], ["subject", "サブジェクト", "教科"], ["Have you ever been to ～?", "ハヴ ユー エヴァー ビーン トゥ", "～に行ったことがありますか"], ["zoo", "ズー", "動物園"]], "passage": "Libraries are useful places for students. Many students want a quiet place to study, so they go to libraries after school. Some people also borrow books and DVDs there.", "passage_ja": "図書館は生徒にとって役に立つ場所です。多くの生徒は勉強するための静かな場所がほしいので、放課後に図書館へ行きます。そこで本やDVDを借りる人もいます。", "mark": ["so", "Many students want a quiet place to study,"]}, "3": {"q": ["Please look at the passage. What do some people enjoy doing on weekends?", "Please look at the picture. Where is the dog?", "Please look at the girl. What is she going to do?", "How do you usually come to school?", "Do you like sports?"], "a": [{"a": "They enjoy cycling in the park.", "kana": "ゼイ エンジョイ サイクリング イン ザ パーク", "ja": "公園でのサイクリングを楽しみます。", "pt": "What do some people ～? → 答えは and のうしろ。some people は They にかえる。"}, {"a": "It is under the bench.", "kana": "イット イズ アンダー ザ ベンチ", "ja": "ベンチの下にいます。", "pt": "Where → 場所で答える。the dog は It。under ～＝～の下に。"}, {"a": "She is going to ride a bicycle.", "kana": "シー イズ ゴーイング トゥ ライド ア バイシクル", "ja": "自転車に乗るつもりです。", "pt": "吹き出しを見る。She is going to ＋動詞の原形 ～. ride a bicycle＝自転車に乗る。"}, {"a": "I walk to school.", "kana": "アイ ウォーク トゥ スクール", "ja": "歩いて学校に行きます。", "pt": "How → 方法。自転車なら I come to school by bike.（バイ バイク）"}, {"yes": "Yes, I do.", "ya": "I like basketball.", "ykana": "イエス アイ ドゥー。アイ ライク バスケットボール", "yja": "バスケットボールが好きです。", "no": "No, I don't.", "na": "I like to listen to music.", "nkana": "ノー アイ ドント。アイ ライク トゥ リスン トゥ ミュージック", "nja": "音楽を聞くのが好きです。", "pt": "まず Yes / No。続きの質問には I like ～. でかんたんに答えればOK。"}], "words": [["ride", "ライド", "乗る"], ["bicycle", "バイシクル", "自転車"], ["health", "ヘルス", "健康"], ["work", "ワーク", "仕事・職場"], ["enjoy ～ing", "エンジョイ", "～するのを楽しむ"], ["cycling", "サイクリング", "サイクリング"], ["earth", "アース", "地球"], ["bench", "ベンチ", "ベンチ"], ["free time", "フリー タイム", "ひまなとき"], ["by bike", "バイ バイク", "自転車で"]], "passage": "Riding a bicycle is good for our health. Many people ride bicycles to school or work, and some people enjoy cycling in the park on weekends. It is also good for the earth.", "passage_ja": "自転車に乗ることは健康によいです。多くの人が自転車で学校や仕事に行き、週末に公園でサイクリングを楽しむ人もいます。それは地球にもよいことです。", "mark": ["and", "some people enjoy cycling in the park on weekends."]}, "4": {"q": ["Please look at the passage. Why do many people buy bread at bakeries for breakfast?", "Please look at the picture. How many cakes are there in the showcase?", "Please look at the man with a hat. What is he holding?", "What did you have for breakfast this morning?", "Do you have any brothers or sisters?"], "a": [{"a": "Because they make fresh bread every morning.", "kana": "ビコーズ ゼイ メイク フレッシュ ブレッド エヴリ モーニング", "ja": "毎朝焼きたてのパンを作るからです。", "pt": "Why → Because ～. 答えは so の前。bakeries は they にかえる。"}, {"a": "There are four cakes.", "kana": "ゼア アー フォー ケイクス", "ja": "4つあります。", "pt": "How many ～ are there? → There are ＋数＋複数形. ショーケースの中だけを数える。"}, {"a": "He is holding a tray.", "kana": "ヒー イズ ホールディング ア トレイ", "ja": "トレーを持っています。", "pt": "What is he holding? → He is holding ～. 持っている物を答える。"}, {"a": "I had bread and milk.", "kana": "アイ ハッド ブレッド アンド ミルク", "ja": "パンと牛乳を食べました（飲みました）。", "pt": "did（過去）の質問 → 過去形で答える。have → had。"}, {"yes": "Yes, I do.", "ya": "I have a brother. He is ten years old.", "ykana": "イエス アイ ドゥー。アイ ハヴ ア ブラザー。ヒー イズ テン イヤーズ オールド", "yja": "弟（兄）が1人います。10歳です。", "no": "No, I don't.", "na": "I like to play video games with my friends.", "nkana": "ノー アイ ドント。アイ ライク トゥ プレイ ビデオ ゲームズ ウィズ マイ フレンズ", "nja": "友だちとテレビゲームをするのが好きです。", "pt": "Do you have ～? → Yes, I do. / No, I don't. 何人いるか・何歳かを言えばOK。"}], "words": [["bakery", "ベイカリー", "パン屋（複数形 bakeries）"], ["fresh", "フレッシュ", "新鮮な・焼きたての"], ["bread", "ブレッド", "パン"], ["every morning", "エヴリ モーニング", "毎朝"], ["sell", "セル", "売る"], ["cookie", "クッキー", "クッキー"], ["showcase", "ショウケイス", "ショーケース"], ["hold", "ホールド", "持つ"], ["tray", "トレイ", "トレー・おぼん"], ["brother / sister", "ブラザー / シスター", "兄弟 / 姉妹"]], "passage": "There are many bakeries in Japan. Bakeries make fresh bread every morning, so many people buy bread there for breakfast. Some bakeries also sell cakes and cookies.", "passage_ja": "日本にはたくさんのパン屋があります。パン屋は毎朝焼きたてのパンを作るので、多くの人が朝食のためにそこでパンを買います。ケーキやクッキーを売っているパン屋もあります。", "mark": ["so", "Bakeries make fresh bread every morning,"]}, "5": {"q": ["Please look at the passage. Why can people go skiing in some places in Japan?", "Please look at the picture. What is the boy making?", "Please look at the girl. What is she going to do?", "What season do you like the best?", "Do you like cold weather?"], "a": [{"a": "Because they get a lot of snow.", "kana": "ビコーズ ゼイ ゲット ア ロット オブ スノウ", "ja": "たくさん雪がふるからです。", "pt": "Why → Because ～. 答えは so の前。some places in Japan は they にかえる。"}, {"a": "He is making a snowman.", "kana": "ヒー イズ メイキング ア スノウマン", "ja": "雪だるまを作っています。", "pt": "What is ～ making? → He is making ～. make は e をとって making。"}, {"a": "She is going to throw a snowball.", "kana": "シー イズ ゴーイング トゥ スロウ ア スノウボール", "ja": "雪玉を投げるつもりです。", "pt": "吹き出しを見る。She is going to ＋動詞の原形 ～. throw＝投げる。"}, {"a": "I like summer the best.", "kana": "アイ ライク サマー ザ ベスト", "ja": "夏がいちばん好きです。", "pt": "I like ～ the best. 季節：spring・summer・fall・winter。"}, {"yes": "Yes, I do.", "ya": "I like snow. I often play in the snow.", "ykana": "イエス アイ ドゥー。アイ ライク スノウ。アイ オーフン プレイ イン ザ スノウ", "yja": "雪が好きです。よく雪の中で遊びます。", "no": "No, I don't.", "na": "Because it is too cold for me.", "nkana": "ノー アイ ドント。ビコーズ イット イズ トゥー コールド フォー ミー", "nja": "わたしには寒すぎるからです。", "pt": "No のあとの Why not? には Because ～. で理由を言う。"}], "words": [["winter", "ウィンター", "冬"], ["place", "プレイス", "場所"], ["a lot of ～", "ア ロット オブ", "たくさんの～"], ["snow", "スノウ", "雪"], ["go skiing", "ゴー スキーイング", "スキーをしに行く"], ["snowman", "スノウマン", "雪だるま"], ["children", "チルドレン", "子どもたち"], ["throw", "スロウ", "投げる"], ["snowball", "スノウボール", "雪玉"], ["season", "シーズン", "季節"], ["weather", "ウェザー", "天気"]], "passage": "Many people in Japan enjoy winter. Some places in Japan get a lot of snow, so people can go skiing there. Making a snowman is also fun for children.", "passage_ja": "日本の多くの人が冬を楽しみます。日本のいくつかの場所はたくさん雪がふるので、人々はそこでスキーをしに行くことができます。雪だるまを作ることも子どもたちにとって楽しいことです。", "mark": ["so", "Some places in Japan get a lot of snow,"]}};
+var COMMON_TEXT = {"hello": "Hello.", "card": "Can I have your card, please?", "sit": "Please sit down.", "name": "May I have your name, please?", "grade": "This is the third grade test, OK?", "how": "How are you?", "start": "Let's start the test.", "thiscard": "This is your card.", "silent": "Please read the passage silently for twenty seconds.", "aloud": "Now, please read it aloud.", "five": "Now, I'll ask you five questions.", "turn": "Now, please turn the card over.", "back": "May I have your card back, please?", "go": "You may go now.", "tellmore": "Please tell me more.", "whynot": "Why not?"};
+var A = "eiken3/audio/", IMG = "eiken3/img/";
+var PH = ["入室","名前","黙読","音読","質問","退室"];
+var day = 1, steps = [], si = -1, timerId = null, tEnd = 0, tTotal = 0, ynChoice = null;
+var audio = new Audio();
+audio.preload = "auto";
+function $(id){ return document.getElementById(id); }
+
+// Day ボタン
+(function(){
+  var h = "";
+  for (var d = 1; d <= 5; d++) h += '<button class="btn" data-d="'+d+'" aria-pressed="'+(d===1)+'">類題 '+d+'<small>'+DAYS[d].title+'</small></button>';
+  $("days").innerHTML = h;
+  $("days").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    day = +b.dataset.d;
+    [].forEach.call($("days").children, function(x){ x.setAttribute("aria-pressed", x === b); });
+    $("startBtn").textContent = "本番スタート（類題 " + day + "）";
+  });
+})();
+
+function build(d){
+  var D = DAYS[d], s = [];
+  // say: 面接官の音声 / you: 受験者のセリフ（ヒント）/ wait: 答える時間（秒）
+  s.push({ph:0, you:"Hello.（Good morning. / Good afternoon.）", note:"入室したら、あなたから先にあいさつ", wait:5, hintOnly:true});
+  s.push({ph:0, say:"c-hello"});
+  s.push({ph:0, say:"c-card", you:"Here you are.", wait:5, hint:true});
+  s.push({ph:0, say:"c-sit", you:"Thank you.", wait:4, hint:true});
+  s.push({ph:1, say:"c-name", you:"My name is ～.", wait:6, hint:true});
+  s.push({ph:1, say:"c-grade", you:"OK.", wait:4, hint:true});
+  s.push({ph:1, say:"c-how", you:"I'm fine, thank you.", wait:5, hint:true});
+  s.push({ph:1, say:"c-start"});
+  s.push({ph:1, say:"c-thiscard", you:"Thank you.", wait:4, hint:true, card:"show"});
+  s.push({ph:2, say:"c-silent", you:"All right.", wait:3, hint:true});
+  s.push({ph:2, silent:20, note:"声に出さずに読もう（20秒）"});
+  s.push({ph:3, say:"c-aloud", you:"OK.", wait:3, hint:true});
+  s.push({ph:3, aloud:50, note:"タイトルから、はっきり大きな声で読もう。読み終えたら「次へ」"});
+  s.push({ph:4, say:"c-five"});
+  for (var i = 1; i <= 3; i++) s.push({ph:4, say:"r"+d+"-q"+i, text:D.q[i-1], label:"No."+i, wait:15});
+  s.push({ph:4, say:"c-turn", card:"hide", wait:3, note:"カードを裏返そう"});
+  s.push({ph:4, say:"r"+d+"-q4", text:D.q[3], label:"No.4", wait:15});
+  s.push({ph:4, say:"r"+d+"-q5", text:D.q[4], label:"No.5", wait:12, yn:true, note:"まず Yes / No で答えて、ボタンをおそう"});
+  s.push({ph:4, follow:true, label:"No.5", wait:20});
+  s.push({ph:5, say:"c-back", you:"Here you are.", wait:5, hint:true, card:"gone"});
+  s.push({ph:5, say:"c-go", you:"Thank you very much. Goodbye.", wait:6, hint:true});
+  return s;
+}
+
+function src(name){ return A + name + ".mp3"; }
+function play(name, cb){
+  clearTimer();
+  audio.onended = null;
+  audio.src = src(name);
+  audio.playbackRate = $("optSlow").checked ? 0.85 : 1;
+  $("speaking").innerHTML = '<span class="who i">面接官</span><span class="wave"></span>話しています…';
+  audio.onended = function(){ $("speaking").innerHTML = '<span class="who i">面接官</span>'; cb && cb(); };
+  var p = audio.play(); if (p && p.catch) p.catch(function(){ $("speaking").textContent = "音が出ないときは「もう一度」をおしてください"; });
+}
+
+function setPhase(n){
+  var h = "";
+  PH.forEach(function(t, i){ h += '<span class="'+(i===n?"on":(i<n?"done":""))+'">'+t+'</span>'; });
+  $("phase").innerHTML = h;
+}
+
+var cardState = "none";
+function drawCard(){
+  var a = $("cardArea");
+  if (cardState === "show") a.innerHTML = '<div class="cardimg"><img src="'+IMG+'rcard'+day+'.jpg" alt="問題カード"></div>';
+  else if (cardState === "hide") a.innerHTML = '<div class="cardback">問題カードは裏返しています<br>（カードを見ないで答えよう）</div>';
+  else a.innerHTML = "";
+}
+
+function clearTimer(){ if (timerId) { clearInterval(timerId); timerId = null; } $("timer").hidden = true; $("bigCount").hidden = true; }
+function startTimer(sec, label, big){
+  clearTimer();
+  tTotal = sec; tEnd = Date.now() + sec*1000;
+  $("timer").hidden = false; $("bigCount").hidden = !big;
+  $("tlabelL").textContent = label;
+  var tick = function(){
+    var left = Math.max(0, (tEnd - Date.now())/1000);
+    $("barFill").style.width = (100 - left/tTotal*100) + "%";
+    $("tlabelR").textContent = "のこり " + Math.ceil(left) + " 秒";
+    $("bigCount").textContent = Math.ceil(left);
+    if (left <= 0) {
+      clearTimer();
+      if (big || $("optAuto").checked) next();
+      else $("tlabelR").textContent = "時間です →「次へ」";
+    }
+  };
+  tick(); timerId = setInterval(tick, 200);
+}
+
+function show(){
+  var st = steps[si];
+  setPhase(st.ph);
+  if (st.card) { cardState = st.card; drawCard(); }
+  $("qtext").textContent = "";
+  $("your").hidden = true; $("yn").hidden = true;
+  $("againBtn").disabled = !(st.say || st.follow);
+  var showHint = $("optHint").checked;
+
+  var afterSpeak = function(){
+    if (st.label && $("optQ").checked) $("qtext").textContent = st.label + "  " + (st.text || "");
+    else if (st.label) $("qtext").textContent = st.label;
+    if (st.you && (showHint || st.hintOnly)) {
+      $("your").innerHTML = '<span class="who y">あなた</span>' + (st.note ? '<span class="small">'+st.note+'</span><br>' : "") + '<span class="en">' + st.you + '</span>';
+      $("your").hidden = false;
+    } else if (st.note) {
+      $("your").innerHTML = '<span class="small">' + st.note + '</span>'; $("your").hidden = false;
+    }
+    if (st.yn) { $("yn").hidden = false; }
+    if (st.wait) startTimer(st.wait, st.label ? "答える時間" : "あなたの番", false);
+    else if (!st.silent && !st.aloud) setTimeout(function(){ if (steps[si] === st) next(); }, 500);
+  };
+
+  if (st.silent) {
+    $("speaking").innerHTML = '<span class="who y">あなた</span>黙読中（声に出さない）';
+    $("your").innerHTML = '<span class="small">' + st.note + '</span>'; $("your").hidden = false;
+    startTimer(st.silent, "黙読", true);
+  } else if (st.aloud) {
+    $("speaking").innerHTML = '<span class="who y">あなた</span>音読中';
+    $("your").innerHTML = '<span class="small">' + st.note + '</span>'; $("your").hidden = false;
+    startTimer(st.aloud, "音読", false);
+  } else if (st.follow) {
+    var D = DAYS[day], key = ynChoice === "yes" ? "yes" : "no";
+    var name = D[key] ? "c-" + D[key] : "r" + day + "-" + key;
+    st._name = name; st.text = ynChoice === "yes" ? D.yesText : D.noText;
+    play(name, afterSpeak);
+  } else if (st.say) {
+    play(st.say, afterSpeak);
+  } else {
+    $("speaking").innerHTML = "";
+    afterSpeak();
+  }
+}
+
+function next(){
+  var st = steps[si];
+  if (st && st.yn && !ynChoice) { $("tlabelR").textContent = "Yes / No のボタンをおそう"; $("yn").hidden = false; return; }
+  audio.pause(); clearTimer();
+  si++;
+  if (si >= steps.length) return finish();
+  show();
+}
+function again(){
+  var st = steps[si]; if (!st) return;
+  audio.pause(); clearTimer(); $("yn").hidden = true;
+  if (st.yn) ynChoice = null;
+  show();
+}
+
+function start(){
+  steps = build(day); si = -1; ynChoice = null; cardState = "none"; drawCard();
+  $("home").style.display = "none"; $("result").style.display = "none"; $("stage").style.display = "block";
+  window.scrollTo(0, 0);
+  next();
+}
+function quit(){ audio.pause(); clearTimer(); $("stage").style.display = "none"; $("result").style.display = "none"; $("home").style.display = "block"; }
+
+function finish(){
+  audio.pause(); clearTimer();
+  $("stage").style.display = "none"; $("result").style.display = "block"; window.scrollTo(0, 0);
+  var D = DAYS[day];
+  $("resTitle").textContent = "類題 " + day + "　おつかれさま！";
+  $("resCard").src = IMG + "rcard" + day + ".jpg";
+  var X = ANS[day], h = "";
+  for (var i = 0; i < 4; i++) {
+    var a = X.a[i];
+    h += '<div class="ab"><div class="qh"><span class="no">No.' + (i+1) + '</span><button class="btn sm" data-play="r'+day+'-q'+(i+1)+'">▶ 質問</button></div>' +
+         '<div class="qe">' + esc(X.q[i]) + '</div>';
+    if (i === 0) h += '<div class="psg">' + passageMark(X) + '</div>';
+    h += ansLine("r"+day+"-a"+(i+1), a.kana, a.a, a.ja) + '<div class="pt">' + esc(a.pt) + '</div></div>';
+  }
+  var f = X.a[4];
+  h += '<div class="ab"><div class="qh"><span class="no">No.5</span><button class="btn sm" data-play="r'+day+'-q5">▶ 質問</button></div>' +
+       '<div class="qe">' + esc(X.q[4]) + '</div>' +
+       '<div class="yn2"><b>Yes のとき</b>　<span class="qe">→ ' + esc(DAYS[day].yesText) + '</span> <button class="btn sm" data-play="' + (DAYS[day].yes ? "c-"+DAYS[day].yes : "r"+day+"-yes") + '">▶</button></div>' +
+       ansLine("r"+day+"-a5y", "", f.yes + " " + f.ya, f.yja, f.ykana) +
+       '<div class="yn2"><b>No のとき</b>　<span class="qe">→ ' + esc(DAYS[day].noText) + '</span> <button class="btn sm" data-play="' + (DAYS[day].no ? "c-"+DAYS[day].no : "r"+day+"-no") + '">▶</button></div>' +
+       ansLine("r"+day+"-a5n", "", f.no + " " + f.na, f.nja, f.nkana) +
+       '<div class="pt">' + esc(f.pt) + '</div></div>';
+  $("ansBox").innerHTML = h;
+  var w = '<table class="wt">';
+  X.words.forEach(function(r){ w += '<tr><td class="we">' + esc(r[0]) + '</td><td class="wk">' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>'; });
+  $("wordBox").innerHTML = w + '</table>';
+  $("model").innerHTML = row("r"+day+"-passage", DAYS[day].title + "（パッセージ）") + '<p class="small" style="margin:6px 0 0">' + esc(X.passage_ja) + '</p>';
+}
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function ansLine(name, kana, en, ja, kana2){
+  kana = kana2 || kana;
+  return '<div class="al"><button class="btn sm" data-play="' + name + '">▶</button><div><div class="kana">' + esc(kana) + '</div><div class="en2">' + esc(en) + '</div><div class="ja2">' + esc(ja) + '</div></div></div>';
+}
+function passageMark(X){
+  var p = esc(X.passage), m = esc(X.mark[1]), c = X.mark[0];
+  p = p.replace(m, '<mark>' + m + '</mark>');
+  p = p.replace(new RegExp(",( |</mark> )" + c + " "), function(s){ return s.replace(c + " ", '<b class="cj">' + c + '</b> '); });
+  return '<span class="small">パッセージ：</span>' + p;
+}
+function row(name, text){ return '<div class="row"><button class="btn" data-play="'+name+'">▶</button><span class="t">'+text+'</span></div>'; }
+document.addEventListener("click", function(e){
+  var b = e.target.closest("[data-play]"); if (!b) return;
+  audio.onended = null; audio.src = src(b.dataset.play); audio.playbackRate = $("optSlow").checked ? 0.85 : 1; audio.play();
+});
+
+$("startBtn").onclick = start;
+$("nextBtn").onclick = next;
+$("againBtn").onclick = again;
+$("quitBtn").onclick = quit;
+$("homeBtn").onclick = quit;
+$("retryBtn").onclick = start;
+$("ynYes").onclick = function(){ ynChoice = "yes"; next(); };
+$("ynNo").onclick = function(){ ynChoice = "no"; next(); };
+</script>
+</body>
+</html>
