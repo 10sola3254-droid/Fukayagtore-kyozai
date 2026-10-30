@@ -12,7 +12,8 @@
     { name: "英語", icon: "英" },
     { name: "国語", icon: "国" },
     { name: "理科", icon: "理" },
-    { name: "社会", icon: "社" }
+    { name: "社会", icon: "社" },
+    { name: "北辰対策", icon: "北" }
   ];
 
   var view = document.getElementById("view");
@@ -112,7 +113,7 @@
       var url = String(pick(row, ["URL", "url"])).trim();
       if (!subject || !unitName || !title) return;
       if (!bySubject[subject]) {
-        console.warn("materials.json: 知らない教科名です →", subject, "（数学・英語・国語・理科・社会のどれかにしてください）");
+        console.warn("materials.json: 知らない教科名です →", subject, "（数学・英語・国語・理科・社会・北辰対策のどれかにしてください）");
         return;
       }
       var units = bySubject[subject];

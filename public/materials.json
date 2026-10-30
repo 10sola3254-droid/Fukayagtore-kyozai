@@ -235,5 +235,15 @@
   {"教科": "社会", "単元": "中3 地理（入試対策）", "細かい単元": "02 地理の重要語句（一問一答＋チェックテスト）", "URL": "materials/shakai-chiri-02-goku.pdf"},
   {"教科": "社会", "単元": "中3 地理（入試対策）", "細かい単元": "03 資料の読み取り（雨温図・表・地形図＋北辰演習）", "URL": "materials/shakai-chiri-03-shiryo-r2.pdf"},
   {"教科": "社会", "単元": "中3 地理（入試対策）", "細かい単元": "04 日本の工業地帯", "URL": "materials/shakai-chiri-04-kogyo.pdf"},
-  {"教科": "社会", "単元": "中3 地理（入試対策）", "細かい単元": "05 時差の計算", "URL": "materials/shakai-chiri-05-jisa.pdf"}
+  {"教科": "社会", "単元": "中3 地理（入試対策）", "細かい単元": "05 時差の計算", "URL": "materials/shakai-chiri-05-jisa.pdf"},
+  {"教科": "北辰対策", "単元": "中3 第6回（11月）北辰予想問題 A版", "細かい単元": "数学 問題", "URL": "materials/hokushin-yoso06-A-sugaku-mondai.pdf"},
+  {"教科": "北辰対策", "単元": "中3 第6回（11月）北辰予想問題 A版", "細かい単元": "数学 くわしい解説（問題つき）", "URL": "materials/hokushin-yoso06-A-sugaku-kaisetsu.pdf"},
+  {"教科": "北辰対策", "単元": "中3 第6回（11月）北辰予想問題 A版", "細かい単元": "英語 問題", "URL": "materials/hokushin-yoso06-A-eigo-mondai.pdf"},
+  {"教科": "北辰対策", "単元": "中3 第6回（11月）北辰予想問題 A版", "細かい単元": "英語 くわしい解説（問題つき）", "URL": "materials/hokushin-yoso06-A-eigo-kaisetsu.pdf"},
+  {"教科": "北辰対策", "単元": "中3 第6回（11月）北辰予想問題 A版", "細かい単元": "国語 問題", "URL": "materials/hokushin-yoso06-A-kokugo-mondai.pdf"},
+  {"教科": "北辰対策", "単元": "中3 第6回（11月）北辰予想問題 A版", "細かい単元": "国語 くわしい解説（問題つき）", "URL": "materials/hokushin-yoso06-A-kokugo-kaisetsu.pdf"},
+  {"教科": "北辰対策", "単元": "中3 第6回（11月）北辰予想問題 A版", "細かい単元": "理科 問題", "URL": "materials/hokushin-yoso06-A-rika-mondai.pdf"},
+  {"教科": "北辰対策", "単元": "中3 第6回（11月）北辰予想問題 A版", "細かい単元": "理科 くわしい解説（問題つき）", "URL": "materials/hokushin-yoso06-A-rika-kaisetsu.pdf"},
+  {"教科": "北辰対策", "単元": "中3 第6回（11月）北辰予想問題 A版", "細かい単元": "社会 問題", "URL": "materials/hokushin-yoso06-A-shakai-mondai.pdf"},
+  {"教科": "北辰対策", "単元": "中3 第6回（11月）北辰予想問題 A版", "細かい単元": "社会 くわしい解説（問題つき）", "URL": "materials/hokushin-yoso06-A-shakai-kaisetsu.pdf"}
 ]

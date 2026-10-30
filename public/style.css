@@ -16,6 +16,7 @@
   --jpn: #15803d;
   --sci: #ea580c;
   --soc: #7c3aed;
+  --hok: #0f766e;
 
   /* 今いる教科の色（JSで切りかえ） */
   --c: var(--navy);
@@ -30,6 +31,7 @@ body[data-subject="英語"] { --c: var(--eng);  --c-soft: #fdeaea; }
 body[data-subject="国語"] { --c: var(--jpn);  --c-soft: #e5f4ea; }
 body[data-subject="理科"] { --c: var(--sci);  --c-soft: #fdeee3; }
 body[data-subject="社会"] { --c: var(--soc);  --c-soft: #f0eafd; }
+body[data-subject="北辰対策"] { --c: var(--hok);  --c-soft: #e3f4f1; }
 
 * { box-sizing: border-box; }
 
@@ -189,6 +191,8 @@ body[data-screen="home"] .back-btn { display: none; }
 .subject-btn[data-s="国語"] { --sc: var(--jpn); }
 .subject-btn[data-s="理科"] { --sc: var(--sci); }
 .subject-btn[data-s="社会"] { --sc: var(--soc); }
+.subject-btn[data-s="北辰対策"] { --sc: var(--hok); }
+.subject-btn[data-s="北辰対策"] .subject-name { letter-spacing: .02em; }
 
 .chip {
   display: inline-block;
