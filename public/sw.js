@@ -1,5 +1,5 @@
 /* ホーム画面アプリ用のしくみ（オフラインでも一度開いた教材は見られる） */
-var VERSION = "gtore-v8";
+var VERSION = "gtore-v9";
 var SHELL = [
   "./",
   "index.html",

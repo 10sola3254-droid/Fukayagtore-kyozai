@@ -21,7 +21,8 @@
   var backBtn = document.getElementById("backBtn");
   var navBar = document.getElementById("navBar");
 
-  var DATA = null;      // { 教科名: [単元, ...] }
+  var DATA = null;      // { 教科名: [単元, ...] }（フォルダに入っていない単元）
+  var FOLDERS = {};     // { 教科名: [{ name: "11月", units: [単元, ...] }, ...] }
   var LOAD_ERROR = "";
   var currentPdfTask = null;
 
@@ -103,7 +104,8 @@
   function buildData(list) {
     if (list && !Array.isArray(list)) list = list["教材"] || list.materials || [];
     var bySubject = {};
-    SUBJECTS.forEach(function (s) { bySubject[s.name] = []; });
+    FOLDERS = {};
+    SUBJECTS.forEach(function (s) { bySubject[s.name] = []; FOLDERS[s.name] = []; });
 
     list.forEach(function (row, i) {
       if (!row || typeof row !== "object") return;
@@ -111,23 +113,38 @@
       var unitName = String(pick(row, ["単元", "unit"])).trim();
       var title = String(pick(row, ["細かい単元", "topic", "title"])).trim();
       var url = String(pick(row, ["URL", "url"])).trim();
-      if (!subject || !unitName || !title) return;
+      var folderName = String(pick(row, ["フォルダ", "folder"])).trim();
+      if (!subject) return;
       if (!bySubject[subject]) {
         console.warn("materials.json: 知らない教科名です →", subject, "（数学・英語・国語・理科・社会・北辰対策のどれかにしてください）");
         return;
       }
-      var units = bySubject[subject];
+      // フォルダ（例：北辰対策の「11月」「12月」）。単元なしで書くと空のフォルダだけ作れる
+      var folder = null;
+      if (folderName) {
+        var fl = FOLDERS[subject];
+        for (var k = 0; k < fl.length; k++) {
+          if (norm(fl[k].name) === norm(folderName)) { folder = fl[k]; break; }
+        }
+        if (!folder) { folder = { name: folderName, units: [], order: i }; fl.push(folder); }
+      }
+      if (!unitName || !title) return;
+      var units = folder ? folder.units : bySubject[subject];
       var unit = null;
       for (var j = 0; j < units.length; j++) {
         if (norm(units[j].name) === norm(unitName)) { unit = units[j]; break; }
       }
-      if (!unit) { unit = { name: unitName, topics: [], order: i }; units.push(unit); }
+      if (!unit) { unit = { name: unitName, topics: [], order: i, folder: folder }; units.push(unit); }
       unit.topics.push({ title: title, url: url, order: i });
     });
 
     Object.keys(bySubject).forEach(function (s) {
       bySubject[s].forEach(function (u) { u.topics.sort(compareTopics); });
       bySubject[s].sort(compareUnits);
+      FOLDERS[s].forEach(function (f) {
+        f.units.forEach(function (u) { u.topics.sort(compareTopics); });
+        f.units.sort(compareUnits);
+      });
     });
     return bySubject;
   }
@@ -204,16 +221,29 @@
 
   function routeFromURL() {
     var q = new URLSearchParams(location.search);
-    var r = { subject: null, unit: null, topic: null, missing: "" };
+    var r = { subject: null, folder: null, unit: null, topic: null, missing: "" };
     var s = q.get("subject");
     if (!s) return r;
     r.subject = findSubject(s);
     if (!r.subject) { r.missing = "教科「" + s + "」"; return r; }
+    var f = q.get("folder");
+    if (f) {
+      r.folder = findByName(FOLDERS[r.subject], f, function (x) { return x.name; });
+      if (!r.folder) { r.missing = "フォルダ「" + f + "」"; return r; }
+    }
     var u = q.get("unit");
     if (!u) return r;
-    var unit = findByName(DATA[r.subject], u, function (x) { return x.name; });
+    var getName = function (x) { return x.name; };
+    var unit = findByName(r.folder ? r.folder.units : DATA[r.subject], u, getName);
+    if (!unit && !r.folder) {
+      // フォルダ名なしの古いURL・QRコードでも開けるように、フォルダの中も探す
+      var all = [];
+      FOLDERS[r.subject].forEach(function (x) { all = all.concat(x.units); });
+      unit = findByName(all, u, getName);
+    }
     if (!unit) { r.missing = "単元「" + u + "」"; return r; }
     r.unit = unit;
+    r.folder = unit.folder || null;
     var t = q.get("topic");
     if (!t) return r;
     var byCode = unit.topics.filter(function (x) { return norm(splitTopic(x.title).code) === norm(t); });
@@ -223,9 +253,11 @@
     return r;
   }
 
-  function urlFor(subject, unit, topic) {
+  function urlFor(subject, unit, topic, folder) {
+    folder = folder || (unit && unit.folder) || null;
     var q = new URLSearchParams();
     if (subject) q.set("subject", subject);
+    if (folder) q.set("folder", folder.name);
     if (unit) q.set("unit", unit.name);
     if (topic) q.set("topic", topic.title);
     var s = q.toString();
@@ -233,27 +265,31 @@
   }
 
   // 次の画面へ（スマホの「戻る」操作でも1つ前にもどれる）
-  function go(subject, unit, topic) {
+  function go(subject, unit, topic, folder) {
     var cur = routeFromURL();
-    var d = depthOf(subject, unit, topic);
-    var fromParent = d === depthOf(cur.subject, cur.unit, cur.topic) + 1;   // 1つ下の画面へ進んだとき
-    history.pushState({ app: true, depth: d, fromParent: fromParent }, "", urlFor(subject, unit, topic));
+    var d = depthOf(subject, unit, topic, folder);
+    var fromParent = d === depthOf(cur.subject, cur.unit, cur.topic, cur.folder) + 1;   // 1つ下の画面へ進んだとき
+    history.pushState({ app: true, depth: d, fromParent: fromParent }, "", urlFor(subject, unit, topic, folder));
     render(true);
   }
-  function depthOf(s, u, t) { return t ? 3 : u ? 2 : s ? 1 : 0; }
+  function depthOf(s, u, t, f) {
+    f = f || (u && u.folder);
+    return (s ? 1 : 0) + (f ? 1 : 0) + (u ? 1 : 0) + (t ? 1 : 0);
+  }
 
   // 「もどる」ボタン：1つ上の画面へ
   function goUp() {
     var r = routeFromURL();
     var parent;
-    if (r.topic) parent = [r.subject, r.unit, null];
-    else if (r.unit) parent = [r.subject, null, null];
-    else parent = [null, null, null];
+    if (r.topic) parent = [r.subject, r.unit, null, null];
+    else if (r.unit) parent = [r.subject, null, null, r.folder];
+    else if (r.folder) parent = [r.subject, null, null, null];
+    else parent = [null, null, null, null];
     var st = history.state;
-    if (st && st.app && st.depth === depthOf(r.subject, r.unit, r.topic) && st.depth > 0 && st.fromParent) {
+    if (st && st.app && st.depth === depthOf(r.subject, r.unit, r.topic, r.folder) && st.depth > 0 && st.fromParent) {
       history.back();
     } else {
-      history.replaceState({ app: true, depth: depthOf(parent[0], parent[1], parent[2]) }, "", urlFor(parent[0], parent[1], parent[2]));
+      history.replaceState({ app: true, depth: depthOf(parent[0], parent[1], parent[2], parent[3]) }, "", urlFor(parent[0], parent[1], parent[2], parent[3]));
       render(true);
     }
   }
@@ -264,9 +300,14 @@
     var hasMore = !!r.subject;
     items.push(hasMore ? '<li><a href="' + esc(urlFor()) + '" data-go="home">ホーム</a></li>' : '<li aria-current="page">ホーム</li>');
     if (r.subject) {
-      items.push(r.unit
+      items.push(r.unit || r.folder
         ? '<li><a href="' + esc(urlFor(r.subject)) + '" data-go="subject">' + esc(r.subject) + "</a></li>"
         : '<li aria-current="page">' + esc(r.subject) + "</li>");
+    }
+    if (r.folder) {
+      items.push(r.unit
+        ? '<li><a href="' + esc(urlFor(r.subject, null, null, r.folder)) + '" data-go="folder">' + esc(r.folder.name) + "</a></li>"
+        : '<li aria-current="page">' + esc(r.folder.name) + "</li>");
     }
     if (r.unit) {
       items.push(r.topic
@@ -284,6 +325,7 @@
         var g = a.getAttribute("data-go");
         if (g === "home") go(null);
         else if (g === "subject") go(r.subject);
+        else if (g === "folder") go(r.subject, null, null, r.folder);
         else go(r.subject, r.unit);
       });
     });
@@ -293,7 +335,7 @@
     stopPdf();
     var r = routeFromURL();
     document.body.setAttribute("data-subject", r.subject || "");
-    var screen = r.topic ? "viewer" : r.unit ? "topics" : r.subject ? "units" : "home";
+    var screen = r.topic ? "viewer" : r.unit ? "topics" : r.subject ? "units" : "home";   // フォルダの中も "units"
     document.body.setAttribute("data-screen", screen);
     setCrumbs(r);
 
@@ -306,7 +348,7 @@
     else if (screen === "topics") renderTopics(r, notice);
     else renderViewer(r);
 
-    var titles = { home: "", units: r.subject, topics: r.unit && r.unit.name, viewer: r.topic && r.topic.title };
+    var titles = { home: "", units: r.folder ? r.subject + " " + r.folder.name : r.subject, topics: r.unit && r.unit.name, viewer: r.topic && r.topic.title };
     document.title = (titles[screen] ? titles[screen] + "｜" : "") + "学習空間 深谷上柴教室　Gトレ教材";
     if (fromNav) { window.scrollTo(0, 0); view.focus({ preventScroll: true }); }
     updateBarHeight();
@@ -316,13 +358,15 @@
     var html = notice + '<h1 class="screen-title">教科をえらぼう</h1><ul class="list">';
     SUBJECTS.forEach(function (s) {
       var units = DATA[s.name];
-      var empty = units.length === 0;
+      var folders = FOLDERS[s.name] || [];
+      var empty = units.length === 0 && folders.length === 0;
+      var count = folders.length ? (folders.length + "フォルダ" + (units.length ? "・" + units.length + "単元" : "")) : units.length + "単元";
       html += '<li><button type="button" class="subject-btn' + (empty ? " is-empty" : "") + '" data-s="' + s.name + '"' +
         (empty ? ' aria-disabled="true"' : "") + ">" +
         '<span class="subject-icon" aria-hidden="true">' + s.icon + "</span>" +
         '<span class="subject-name">' + s.name + "</span>" +
         '<span class="subject-meta">' +
-        (empty ? '<span class="chip">準備中</span>' : units.length + '単元<span class="chev" aria-hidden="true">›</span>') +
+        (empty ? '<span class="chip">準備中</span>' : count + '<span class="chev" aria-hidden="true">›</span>') +
         "</span></button></li>";
     });
     html += "</ul>" + installCardHTML() +
@@ -415,10 +459,26 @@
   }
 
   function renderUnits(r, notice) {
-    var units = DATA[r.subject];
-    var html = notice + '<h1 class="screen-title">' + esc(r.subject) + "：単元をえらぼう</h1>";
+    var units = r.folder ? r.folder.units : DATA[r.subject];
+    var folders = r.folder ? [] : (FOLDERS[r.subject] || []);
+    var html = notice + '<h1 class="screen-title">' + esc(r.folder ? r.subject + "　" + r.folder.name : r.subject) +
+      (folders.length && !units.length ? "：フォルダをえらぼう" : "：単元をえらぼう") + "</h1>";
+    if (folders.length) {
+      html += '<ul class="list folder-list">';
+      folders.forEach(function (f, fi) {
+        var n = f.units.length;
+        html += '<li><button type="button" class="item-btn folder-btn' + (n ? "" : " is-soon") + '" data-f="' + fi + '">' +
+          '<span class="item-main"><span class="item-title"><span class="folder-icon" aria-hidden="true">📁</span>' + esc(f.name) + "</span>" +
+          '<span class="item-note">' + (n ? "教材 " + n + "セット" : "これから入ります") + "</span></span>" +
+          '<span class="item-right">' + (n ? '<span class="chev" aria-hidden="true">›</span>' : '<span class="chip">準備中</span>') + "</span>" +
+          "</button></li>";
+      });
+      html += "</ul>";
+    }
     if (!units.length) {
-      view.innerHTML = html + '<p class="empty">この教科の教材は準備中です。</p>';
+      if (!folders.length) html += '<p class="empty">' + (r.folder ? "このフォルダの教材は準備中です。" : "この教科の教材は準備中です。") + "</p>";
+      view.innerHTML = html;
+      bindFolders();
       return;
     }
     // 学年ごとにまとめる
@@ -444,9 +504,20 @@
       html += "</ul></section>";
     });
     view.innerHTML = html;
-    view.querySelectorAll(".item-btn").forEach(function (b) {
+    view.querySelectorAll(".item-btn[data-i]").forEach(function (b) {
       b.addEventListener("click", function () { go(r.subject, units[Number(b.getAttribute("data-i"))]); });
     });
+    bindFolders();
+
+    function bindFolders() {
+      view.querySelectorAll(".folder-btn").forEach(function (b) {
+        b.addEventListener("click", function () {
+          var f = folders[Number(b.getAttribute("data-f"))];
+          if (!f.units.length) return;
+          go(r.subject, null, null, f);
+        });
+      });
+    }
   }
 
   function renderTopics(r, notice) {
@@ -1497,7 +1568,7 @@
 
   loadData().then(function () {
     var r = routeFromURL();
-    history.replaceState({ app: true, depth: depthOf(r.subject, r.unit, r.topic) }, "", location.href);
+    history.replaceState({ app: true, depth: depthOf(r.subject, r.unit, r.topic, r.folder) }, "", location.href);
     render(false);
   });
 })();

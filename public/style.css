@@ -207,6 +207,8 @@ body[data-screen="home"] .back-btn { display: none; }
 
 /* ---------- 単元 ---------- */
 .grade-group + .grade-group { margin-top: 22px; }
+.folder-list + .grade-group { margin-top: 22px; }
+.folder-icon { margin-right: 8px; }
 .grade-label {
   display: inline-block;
   margin: 0 0 10px 2px;
