@@ -1152,13 +1152,15 @@
   }
 
   function tabsHTML(active, panes) {
-    // panes: { ios: html, android: html }
+    // panes: { ios: html, android: html, pc: html（なくてもよい） }
     return '<div class="guide-tabs" role="tablist">' +
       '<button type="button" role="tab" data-tab="ios" aria-selected="' + (active === "ios") + '">iPhone・iPad</button>' +
       '<button type="button" role="tab" data-tab="android" aria-selected="' + (active === "android") + '">Android</button>' +
+      (panes.pc ? '<button type="button" role="tab" data-tab="pc" aria-selected="' + (active === "pc") + '">パソコン</button>' : "") +
       "</div>" +
       '<div class="guide-pane" data-pane="ios"' + (active === "ios" ? "" : " hidden") + ">" + panes.ios + "</div>" +
-      '<div class="guide-pane" data-pane="android"' + (active === "android" ? "" : " hidden") + ">" + panes.android + "</div>";
+      '<div class="guide-pane" data-pane="android"' + (active === "android" ? "" : " hidden") + ">" + panes.android + "</div>" +
+      (panes.pc ? '<div class="guide-pane" data-pane="pc"' + (active === "pc" ? "" : " hidden") + ">" + panes.pc + "</div>" : "");
   }
   function wireTabs(root) {
     root.querySelectorAll("[data-tab]").forEach(function (b) {
@@ -1239,9 +1241,11 @@
   // ホームの「ホーム画面に追加」ボタン（すでにホーム画面から開いているときは出さない）
   function installCardHTML() {
     if (isStandalone()) return "";
+    var pc = deviceInfo().kind === "pc";
     return '<button type="button" class="qr-open-btn install-open-btn" id="installOpenBtn">' +
       '<span class="qr-open-icon install-icon" aria-hidden="true">' + HOME_ICON_SVG + "</span>" +
-      '<span class="qr-open-text"><strong>ホーム画面に追加</strong>アプリのように1回タップで開けます</span>' +
+      (pc ? '<span class="qr-open-text"><strong>Chromeのショートカットを作る</strong>デスクトップのアイコンから1回で開けます</span>'
+          : '<span class="qr-open-text"><strong>ホーム画面に追加</strong>アプリのように1回タップで開けます</span>') +
       '<span class="chev" aria-hidden="true">›</span></button>';
   }
   function wireInstallCard() {
@@ -1262,9 +1266,12 @@
         (d.line ? '<a class="qr-copy" href="' + esc(ext) + '">' + (d.ios ? "Safari" : "Chrome") + "で開く</a>" : "") +
         '<button type="button" class="qr-copy sub" id="installCopy">URLをコピー</button></div>' +
         '<p class="guide-small">コピーしたら' + (d.ios ? "Safari" : "Chrome") + "を開いて、上のアドレス欄に貼りつけます。</p></div>";
-    } else if (d.android && deferredPrompt) {
-      head = '<div class="guide-quick"><button type="button" class="qr-copy big" id="installNow">ホーム画面に追加する</button>' +
+    } else if ((d.android || d.kind === "pc") && deferredPrompt) {
+      head = '<div class="guide-quick"><button type="button" class="qr-copy big" id="installNow">' +
+        (d.kind === "pc" ? "ショートカットを作る" : "ホーム画面に追加する") + "</button>" +
         '<p class="guide-small">出てきた画面で「インストール」をおせば完了です。</p></div>';
+    } else if (d.kind === "pc" && !/Chrome\//.test(navigator.userAgent)) {
+      head = '<div class="guide-warn"><strong>Chrome</strong>（または Microsoft Edge）で開くと、ショートカットを作れます。</div>';
     } else if (d.iosOther) {
       head = '<div class="guide-warn">Safari で開くといちばん確実です。Chrome の場合は、アドレス欄の右にある共有ボタン（□に↑）から「ホーム画面に追加」をえらびます。</div>';
     }
@@ -1283,10 +1290,18 @@
       "<b>「インストール」</b>（または「追加」）をおす",
       "ホーム画面に<b>「Gトレ教材」</b>のアイコンができたら完了"
     ]);
+    var pcSteps = stepsHTML([
+      "パソコンの<b>Chrome</b>でこの画面を開く",
+      "アドレス欄の右はしにある<b>インストールのマーク</b>" + '<span class="key">□に↓</span>' + "をおす<br><span class=\"guide-small\">見つからないときは、右上の<span class=\"key\">︙</span>→<b>「キャスト、保存、共有」</b>→<b>「ページをアプリとしてインストール」</b>（または「ショートカットを作成」）</span>",
+      "<b>「インストール」</b>をおす<br><span class=\"guide-small\">「ショートカットを作成」のときは<b>「ウィンドウとして開く」</b>にチェックを入れて「作成」</span>",
+      "デスクトップやスタートメニューに<b>「Gトレ教材」</b>のアイコンができたら完了",
+      "次からは、そのアイコンを<b>ダブルクリック</b>するだけで開けます"
+    ]);
 
-    var s = openGuideSheet("installSheet", "ホーム画面に追加",
-      '<p class="qr-lead">一度追加すると、次からはアイコンをタップするだけで開けます。</p>' + head +
-      tabsHTML(d.kind === "android" ? "android" : "ios", { ios: ios, android: android }) +
+    var pcMode = d.kind === "pc";
+    var s = openGuideSheet("installSheet", pcMode ? "Chromeのショートカットを作る" : "ホーム画面に追加",
+      '<p class="qr-lead">' + (pcMode ? "一度作ると、次からはアイコンをダブルクリックするだけで開けます。" : "一度追加すると、次からはアイコンをタップするだけで開けます。") + "</p>" + head +
+      tabsHTML(pcMode ? "pc" : d.kind === "android" ? "android" : "ios", { ios: ios, android: android, pc: pcSteps }) +
       '<p class="guide-small guide-foot">一度開いた教材は、電波が弱いときも見られます。</p>');
     wireTabs(s.el);
 
