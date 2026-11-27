@@ -190,17 +190,32 @@ def main(pdf):
             e["for"].append(qq["n"])
 
     # チェックテスト：「確認問題①と同じ型」の位置から各問題の枠を決める
-    tp = P[test_i]
-    marks = []
-    for w in tp["words"]:
-        m = re.fullmatch(r"確認問題([①-⑫])と同じ型", w[0])
-        if m:
-            marks.append((CIRCLED.index(m.group(1)) + 1, w[1], w[2]))
-    # 「確認問題①と同じ型」が1語に分かれている場合の保険
-    if not marks:
-        raise SystemExit("チェックテストの問題位置が見つかりません")
+    # チェックテストが2ページ以上に分かれているときは、続くページ（「チェックテスト」で始まり「同じ型」があるページ）も見る
+    test = []
+    allmarks = []
+    for ti in range(test_i, len(P)):
+        if kinds[ti] != "test":
+            break
+        tp = P[ti]
+        marks = []
+        for w in tp["words"]:
+            m = re.fullmatch(r"確認問題([①-⑫])と同じ型", w[0])
+            if m:
+                marks.append((CIRCLED.index(m.group(1)) + 1, w[1], w[2]))
+        if not marks:
+            if ti == test_i:
+                raise SystemExit("チェックテストの問題位置が見つかりません")
+            break
+        allmarks += marks
+        test += test_rects(tp, marks, ti)
+
+    if sorted(t["n"] for t in test) != sorted(nums):
+        print("  ⚠ チェックテストの番号が表と合いません:", sorted(t["n"] for t in test), nums)
+    finish(pdf, quiz_i, test_i, explain_is, questions, nums, cells, explain, test)
+
+
+def test_rects(tp, marks, test_i):
     ys = sorted(set(round(m[2]) for m in marks))
-    xs = sorted(set(round(m[1] / 300) for m in marks))
     footer = tp["H"] - 52
     test = []
     for n, x, y in sorted(marks):
@@ -215,10 +230,10 @@ def main(pdf):
             x0 = 30 if left_col else tp["W"] / 2 + 8
             x1 = tp["W"] / 2 - 4 if left_col else tp["W"] - 30
         test.append({"n": n, "page": test_i + 1, "rect": frac(tp, x0, y - 8, x1, bottom)})
+    return test
 
-    if sorted(t["n"] for t in test) != sorted(nums):
-        print("  ⚠ チェックテストの番号が表と合いません:", sorted(t["n"] for t in test), nums)
 
+def finish(pdf, quiz_i, test_i, explain_is, questions, nums, cells, explain, test):
     out = {
         "pages": {"quiz": quiz_i + 1, "test": test_i + 1, "explain": [i + 1 for i in explain_is]},
         "questions": questions,
